@@ -462,4 +462,4 @@ Cuestionario estandarizado de 16 items (Marks, 1973). Cada item se evalua de 1 (
 
 ## Licencia
 
-Es software libre.
+Es software libre. Puedes usar, estudiar, modificar y redistribuir este codigo sin restriccion. No se ofrece garantia de ningun tipo. Si lo usas como base para algo, mencionarlo se agradece pero no es obligatorio.
