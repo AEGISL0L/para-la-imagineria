@@ -1,6 +1,26 @@
+from django.utils.safestring import mark_safe
 from django import template
 
 register = template.Library()
+
+SVG_GLYPHS = {
+    'triángulo²': (
+        '<svg viewBox="0 0 100 100" class="inline-block" fill="none" stroke="currentColor" stroke-width="4">'
+        '<polygon points="50,8 95,88 5,88"/>'
+        '<polygon points="50,32 75,75 25,75"/>'
+        '</svg>'
+    ),
+}
+
+
+@register.filter
+def symbol_glyph(symbol, size='1em'):
+    """Render symbol glyph as SVG when needed, plain text otherwise."""
+    svg = SVG_GLYPHS.get(symbol.name)
+    if svg:
+        return mark_safe(svg.replace('class="inline-block"',
+                                     f'class="inline-block" width="{size}" height="{size}"'))
+    return symbol.glyph
 
 
 @register.filter

@@ -23,4 +23,22 @@ urlpatterns = [
     path('settings/', views.settings_view, name='settings'),
     path('api/session/<int:pk>/update-timing/', views.api_update_timing, name='api_update_timing'),
     path('api/progress-data/', views.api_progress_data, name='api_progress_data'),
+
+    # Symbols
+    path('symbols/', views.symbol_list, name='symbol_list'),
+    path('symbols/new/', views.symbol_create, name='symbol_create'),
+    path('symbols/<int:pk>/edit/', views.symbol_edit, name='symbol_edit'),
+    path('symbols/<int:pk>/delete/', views.symbol_delete, name='symbol_delete'),
+    path('symbols/<int:pk>/confirm-delete/', views.symbol_confirm_delete, name='symbol_confirm_delete'),
+
+    # Workspace
+    path('workspace/', views.workspace_start, name='workspace_start'),
+    path('workspace/<int:pk>/exercise/', views.workspace_exercise, name='workspace_exercise'),
+    path('workspace/<int:pk>/assess/', views.workspace_assess, name='workspace_assess'),
+    path('workspace/<int:pk>/', views.workspace_detail, name='workspace_detail'),
+    path('workspace/log/', views.workspace_log, name='workspace_log'),
+
+    # Capabilities
+    path('capabilities/', views.capability_map, name='capability_map'),
+    path('api/capability/<int:pk>/update/', views.api_capability_update, name='api_capability_update'),
 ]

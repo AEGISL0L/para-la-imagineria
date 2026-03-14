@@ -37,6 +37,9 @@ El sistema entrena la capacidad del cerebro para crear, mantener y manipular ima
 - **Programa de 8 semanas** con calendario, mapeo semana-fase, conteo de sesiones y semanas de consolidacion
 - **Modo oscuro** con toggle persistente via cookie
 - **PWA** con service worker que cachea las imagenes de Wikimedia para acceso offline
+- **IAVW (Internal Annotated Visual Workspace)** — ejercicios estructurados de proyeccion de texto, composicion multi-fuente, anotacion con bounding boxes y simbolos internos, con temporizador inmersivo y evaluacion post-ejercicio
+- **Vocabulario simbolico** — registro y gestion de simbolos personales (glifos, forma geometrica, significado) usados como anotaciones internas en el workspace visual
+- **Mapa de capacidades** — tracking temporal de capacidades adquiridas del IAVW (captura, proyeccion, composicion, anotacion, control, retencion) con toggle de estado en tiempo real
 - **Aplicacion de usuario unico** — sin autenticacion, diseñada como herramienta personal
 
 ---
@@ -138,9 +141,16 @@ El repositorio incluye el CSS compilado (`static/css/output.css`) y un binario s
 
 Herramienta independiente accesible desde **Streaming** en el menu. Temporizador configurable (10/15/20 minutos) con prompts que guian la descripcion verbal de imagenes mentales.
 
+### Workspace IAVW
+
+1. Ir a **Workspace** → seleccionar tipo de ejercicio (texto, composicion, anotacion, simbolo, workspace completo) y duracion
+2. Pantalla completa con countdown — realizar el ejercicio mental
+3. Al terminar (o antes pulsando "Terminar antes"), evaluar: viveza, estabilidad, detalle, claridad semantica (1-10)
+4. Campos especificos segun tipo: contenido de texto y readback, capas de composicion, anotaciones con bounding boxes, simbolos usados
+
 ### Capturas de campo
 
-Registrar eventos de imagineria visual en la vida diaria desde **Capturas** → **Nueva captura**. Clasificar por tipo (FFA=caras, PPA=lugares, NAV=navegacion, etc.), condiciones y calidad.
+Registrar eventos de imagineria visual en la vida diaria desde **Capturas** → **Nueva captura**. Clasificar por tipo (FFA=caras, PPA=lugares, NAV=navegacion, TEXT=texto VWFA, COMP=composicion, ANNOT=anotacion, SYMBOL=simbolo, etc.), condiciones y calidad. Los tipos IAVW muestran campos adicionales condicionales.
 
 ### VVIQ
 
@@ -158,15 +168,15 @@ Cuestionario estandarizado de 16 items para medir la vivacidad de la imagineria 
 │   ├── wsgi.py
 │   └── asgi.py
 ├── training/                   # App principal
-│   ├── models.py               # 8 modelos (ver seccion Modelos)
-│   ├── views.py                # 19 vistas (ver seccion Rutas)
+│   ├── models.py               # 11 modelos (ver seccion Modelos)
+│   ├── views.py                # 30 vistas (ver seccion Rutas)
 │   ├── urls.py                 # Rutas con namespace "training"
-│   ├── forms.py                # 5 formularios
-│   ├── admin.py                # Admin personalizado para los 8 modelos
+│   ├── forms.py                # 9 formularios
+│   ├── admin.py                # Admin personalizado para los 11 modelos
 │   ├── apps.py                 # Configuracion de la app
 │   ├── context_processors.py   # Inyecta UserProfile en todo template
 │   ├── templatetags/
-│   │   └── training_tags.py    # 5 filtros personalizados
+│   │   └── training_tags.py    # 6 filtros personalizados
 │   ├── management/commands/
 │   │   ├── seed_artworks.py    # Carga datos de referencia
 │   │   └── fix_urls.py         # Corrige URLs de Wikimedia
@@ -176,7 +186,7 @@ Cuestionario estandarizado de 16 items para medir la vivacidad de la imagineria 
 │   ├── components/
 │   │   ├── _navbar.html        # Barra de navegacion responsive
 │   │   └── _artwork_card.html  # Tarjeta reutilizable de obra
-│   └── training/               # 18 templates de vistas
+│   └── training/               # 27 templates de vistas
 ├── static/
 │   ├── css/
 │   │   ├── input.css           # Componentes Tailwind (@layer)
@@ -283,7 +293,7 @@ Captura de campo (imagineria en la vida diaria).
 
 | Campo | Tipo | Descripcion |
 |-------|------|-------------|
-| `capture_type` | CharField | FFA/EBA/PPA/OPA/NAV/OBJ/COLOR/MOTION/MULTI/OTHER |
+| `capture_type` | CharField | FFA/EBA/PPA/OPA/NAV/OBJ/COLOR/MOTION/MULTI/TEXT/COMP/ANNOT/SYMBOL/OTHER |
 | `quality` | SmallInt(1-10) | Calidad de la imagineria |
 | `description` | TextField | Descripcion del evento |
 | `eyes_open` | Boolean | Con ojos abiertos |
@@ -293,6 +303,63 @@ Captura de campo (imagineria en la vida diaria).
 | `session_end_retention` | Boolean | Retencion al final del dia |
 | `next_day_retention` | Boolean | Retencion al dia siguiente |
 | `repetition_count` | SmallInt | Repeticiones deliberadas |
+| `text_content` | CharField(500) | Texto proyectado (tipo TEXT) |
+| `text_format` | CharField | calligraphy / typographic |
+| `readback_verified` | Boolean | Readback del texto verificado |
+| `symbols_used` | M2M → Symbol | Simbolos usados (tipo SYMBOL) |
+| `composition_layer_count` | SmallInt | Capas de composicion (tipo COMP) |
+| `bounding_boxes_used` | Boolean | Bounding boxes usados (tipo ANNOT) |
+
+### Symbol
+Vocabulario simbolico personal del IAVW.
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `name` | CharField(100) | Nombre: "circular", "cruce", etc. |
+| `glyph` | CharField(10) | Representacion visual: ◎, ✕, △ |
+| `geometric_form` | CharField | CIRCLE/CROSS/TRIANGLE/SQUARE/OTHER |
+| `nesting_level` | SmallInt | 0=simple, 1=anidado |
+| `primary_meaning` | CharField(200) | Significado principal |
+| `additional_meanings` | TextField | Capas semanticas adicionales |
+| `notes` | TextField | Notas |
+
+### WorkspaceExercise
+Ejercicio estructurado del IAVW.
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `exercise_type` | CharField | TEXT/COMP/ANNOT/SYMBOL/FULL |
+| `duration` | Int | Duracion en segundos |
+| `text_content` | TextField | Texto proyectado (tipo TEXT) |
+| `text_format` | CharField | calligraphy / typographic |
+| `text_original_composition` | Boolean | Composicion original vs reproduccion |
+| `readback_success` | Boolean | Readback exitoso |
+| `sources_used` | M2M → BrainArea | Areas fuente (tipo COMP) |
+| `layer_count` | SmallInt | Capas de composicion |
+| `degradation_noted` | Boolean | Degradacion observada |
+| `annotation_count` | SmallInt | Anotaciones realizadas (tipo ANNOT) |
+| `bounding_boxes_used` | Boolean | Bounding boxes usados |
+| `symbols_used` | M2M → Symbol | Simbolos usados (tipo SYMBOL) |
+| `vividness_rating` | SmallInt(1-10) | Viveza |
+| `stability_rating` | SmallInt(1-10) | Estabilidad |
+| `detail_rating` | SmallInt(1-10) | Detalle |
+| `semantic_clarity` | SmallInt(1-10) | Claridad semantica |
+| `description` | TextField | Descripcion |
+| `notes` | TextField | Notas |
+
+### Capability
+Mapa de capacidades del IAVW con tracking temporal.
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| `code` | CharField(30) | Codigo unico: FFA_CAPTURE, TEXT_PROJECTION, etc. |
+| `name` | CharField(200) | Nombre descriptivo |
+| `category` | CharField | CAPTURE/PROJECTION/COMPOSITION/ANNOTATION/CONTROL/RETENTION |
+| `brain_areas` | M2M → BrainArea | Areas cerebrales involucradas |
+| `status` | CharField | confirmed/partial/not_yet |
+| `confirmed_date` | DateField | Fecha de confirmacion |
+| `description` | TextField | Descripcion |
+| `notes` | TextField | Notas |
 
 ### VVIQResponse
 Resultado del cuestionario VVIQ.
@@ -326,8 +393,20 @@ Resultado del cuestionario VVIQ.
 | `/progress/` | `progress` | Dashboard de progreso con graficos |
 | `/vviq/` | `vviq` | Cuestionario VVIQ (16 items) |
 | `/settings/` | `settings_view` | Ajustes: modo, fecha inicio, linea base VVIQ |
+| `/symbols/` | `symbol_list` | Vocabulario simbolico: grid de simbolos con glifos y significados |
+| `/symbols/new/` | `symbol_create` | Crear nuevo simbolo |
+| `/symbols/<pk>/edit/` | `symbol_edit` | Editar simbolo |
+| `/symbols/<pk>/delete/` | `symbol_delete` | Eliminar simbolo (POST) |
+| `/symbols/<pk>/confirm-delete/` | `symbol_confirm_delete` | Confirmacion de borrado |
+| `/workspace/` | `workspace_start` | Selector de tipo de ejercicio IAVW y duracion |
+| `/workspace/<pk>/exercise/` | `workspace_exercise` | Ejercicio inmersivo con temporizador (pantalla completa) |
+| `/workspace/<pk>/assess/` | `workspace_assess` | Evaluacion post-ejercicio |
+| `/workspace/<pk>/` | `workspace_detail` | Resultado del ejercicio |
+| `/workspace/log/` | `workspace_log` | Historial de ejercicios, filtrable por tipo |
+| `/capabilities/` | `capability_map` | Mapa visual de capacidades IAVW agrupadas por categoria |
 | `/api/session/<pk>/update-timing/` | API | Actualiza tiempos de sesion (POST, JSON) |
 | `/api/progress-data/` | API | Datos para graficos de progreso (GET, JSON) |
+| `/api/capability/<pk>/update/` | API | Actualiza estado de capacidad (POST, JSON) |
 
 ---
 
@@ -388,10 +467,12 @@ python manage.py seed_artworks
 
 Carga todos los datos de referencia en la base de datos:
 
-- **16 areas cerebrales**: V1, V2, V3A, V4, V5/MT, LOC, FFA, EBA, STS, PPA, OPA, IPS, RETRO, AMIG, PFC, PAR — con descripciones neurocientificas y analogias
+- **17 areas cerebrales**: V1, V2, V3A, V4, V5/MT, LOC, FFA, EBA, STS, PPA, OPA, IPS, RETRO, AMIG, PFC, PAR, VWFA — con descripciones neurocientificas y analogias
 - **6 fases** con objetivos, protocolos e instrucciones
 - **5 metodos** de entrenamiento (con adaptaciones flat affect)
 - **35 obras** de Malevich, Mondrian, Kelly, Albers, Vasarely, Riley, Escher, Zurbaran, Morandi, Chardin, Hopper, de Chirico, Hokusai, O'Keeffe, af Klint, Vermeer, Turner
+- **4 simbolos** del vocabulario IAVW: circular (◎), cruce (✕), triangulo (△), triangulo² (anidado)
+- **16 capacidades** del mapa IAVW con estado y fecha de confirmacion
 - **1 UserProfile** singleton
 
 Idempotente — usa `update_or_create`, se puede ejecutar multiples veces.
@@ -417,6 +498,7 @@ Disponibles en `{% load training_tags %}`:
 | `format_duration` | `{{ seconds\|format_duration }}` | Formatea segundos a `M:SS` |
 | `emotional_category_badge` | `{{ cat\|emotional_category_badge }}` | Clases Tailwind para badge A/B/C |
 | `phase_color` | `{{ number\|phase_color }}` | Clase de color Tailwind por fase |
+| `symbol_glyph` | `{{ symbol\|symbol_glyph:"2rem" }}` | Renderiza glifo como SVG cuando es necesario (ej. triangulo anidado) |
 
 ---
 

@@ -1,5 +1,8 @@
 from django import forms
-from .models import TrainingSession, FieldCapture, VVIQResponse, UserProfile
+from .models import (
+    TrainingSession, FieldCapture, VVIQResponse, UserProfile,
+    Symbol, WorkspaceExercise, Capability,
+)
 
 
 class SessionStartForm(forms.Form):
@@ -45,11 +48,15 @@ class FieldCaptureForm(forms.ModelForm):
             'capture_type', 'quality', 'description', 'eyes_open',
             'in_motion', 'deliberate', 'immediate_retention',
             'repetition_count', 'notes',
+            'text_content', 'text_format', 'readback_verified',
+            'symbols_used', 'composition_layer_count', 'bounding_boxes_used',
         ]
         widgets = {
             'quality': forms.NumberInput(attrs={'type': 'range', 'min': 1, 'max': 10, 'value': 5}),
             'description': forms.Textarea(attrs={'rows': 3}),
             'notes': forms.Textarea(attrs={'rows': 2}),
+            'text_content': forms.TextInput(attrs={'placeholder': 'Texto proyectado'}),
+            'symbols_used': forms.CheckboxSelectMultiple(),
         }
         labels = {
             'capture_type': 'Tipo de captura',
@@ -61,6 +68,12 @@ class FieldCaptureForm(forms.ModelForm):
             'immediate_retention': 'Retención inmediata',
             'repetition_count': 'Repeticiones',
             'notes': 'Notas',
+            'text_content': 'Contenido de texto',
+            'text_format': 'Formato de texto',
+            'readback_verified': 'Readback verificado',
+            'symbols_used': 'Símbolos usados',
+            'composition_layer_count': 'Capas de composición',
+            'bounding_boxes_used': 'Bounding boxes usados',
         }
 
 
@@ -118,4 +131,96 @@ class UserProfileForm(forms.ModelForm):
         labels = {
             'mode': 'Modo de entrenamiento',
             'program_start_date': 'Fecha de inicio del programa',
+        }
+
+
+class SymbolForm(forms.ModelForm):
+    class Meta:
+        model = Symbol
+        fields = [
+            'name', 'glyph', 'geometric_form', 'nesting_level',
+            'primary_meaning', 'additional_meanings', 'notes',
+        ]
+        widgets = {
+            'additional_meanings': forms.Textarea(attrs={'rows': 2}),
+            'notes': forms.Textarea(attrs={'rows': 2}),
+        }
+        labels = {
+            'name': 'Nombre',
+            'glyph': 'Glifo',
+            'geometric_form': 'Forma geométrica',
+            'nesting_level': 'Nivel de anidamiento',
+            'primary_meaning': 'Significado principal',
+            'additional_meanings': 'Significados adicionales',
+            'notes': 'Notas',
+        }
+
+
+class WorkspaceStartForm(forms.Form):
+    exercise_type = forms.ChoiceField(
+        choices=WorkspaceExercise.EXERCISE_TYPES,
+        label='Tipo de ejercicio',
+    )
+    duration = forms.ChoiceField(
+        choices=[
+            (60, '1 minuto'), (120, '2 minutos'), (180, '3 minutos'),
+            (300, '5 minutos'), (600, '10 minutos'),
+        ],
+        initial=180,
+        label='Duración',
+    )
+
+
+class WorkspaceAssessForm(forms.ModelForm):
+    class Meta:
+        model = WorkspaceExercise
+        fields = [
+            'text_content', 'text_format', 'text_original_composition', 'readback_success',
+            'layer_count', 'degradation_noted',
+            'annotation_count', 'bounding_boxes_used',
+            'symbols_used', 'sources_used',
+            'vividness_rating', 'stability_rating', 'detail_rating', 'semantic_clarity',
+            'description', 'notes',
+        ]
+        widgets = {
+            'vividness_rating': forms.NumberInput(attrs={'type': 'range', 'min': 1, 'max': 10, 'value': 5}),
+            'stability_rating': forms.NumberInput(attrs={'type': 'range', 'min': 1, 'max': 10, 'value': 5}),
+            'detail_rating': forms.NumberInput(attrs={'type': 'range', 'min': 1, 'max': 10, 'value': 5}),
+            'semantic_clarity': forms.NumberInput(attrs={'type': 'range', 'min': 1, 'max': 10, 'value': 5}),
+            'description': forms.Textarea(attrs={'rows': 3}),
+            'notes': forms.Textarea(attrs={'rows': 2}),
+            'text_content': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Texto proyectado/leído'}),
+            'symbols_used': forms.CheckboxSelectMultiple(),
+            'sources_used': forms.CheckboxSelectMultiple(),
+        }
+        labels = {
+            'text_content': 'Contenido de texto',
+            'text_format': 'Formato de texto',
+            'text_original_composition': 'Composición original',
+            'readback_success': 'Readback exitoso',
+            'layer_count': 'Número de capas',
+            'degradation_noted': 'Degradación observada',
+            'annotation_count': 'Número de anotaciones',
+            'bounding_boxes_used': 'Bounding boxes usados',
+            'symbols_used': 'Símbolos usados',
+            'sources_used': 'Áreas cerebrales fuente',
+            'vividness_rating': 'Viveza (1-10)',
+            'stability_rating': 'Estabilidad (1-10)',
+            'detail_rating': 'Detalle (1-10)',
+            'semantic_clarity': 'Claridad semántica (1-10)',
+            'description': 'Descripción',
+            'notes': 'Notas',
+        }
+
+
+class CapabilityUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Capability
+        fields = ['status', 'confirmed_date']
+        widgets = {
+            'confirmed_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+        labels = {
+            'status': 'Estado',
+            'confirmed_date': 'Fecha de confirmación',
         }

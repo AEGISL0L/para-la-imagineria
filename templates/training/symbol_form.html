@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}{% if editing %}Editar{% else %}Nuevo{% endif %} símbolo{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto space-y-6">
+    <h1 class="text-2xl font-bold">{% if editing %}Editar símbolo: {{ symbol.glyph }} {{ symbol.name }}{% else %}Nuevo símbolo{% endif %}</h1>
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+
+        <div class="card space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label">{{ form.name.label }}</label>
+                    {% render_field form.name class="form-input" %}
+                </div>
+                <div>
+                    <label class="form-label">{{ form.glyph.label }}</label>
+                    {% render_field form.glyph class="form-input text-2xl text-center" %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="form-label">{{ form.geometric_form.label }}</label>
+                    {% render_field form.geometric_form class="form-input" %}
+                </div>
+                <div>
+                    <label class="form-label">{{ form.nesting_level.label }}</label>
+                    {% render_field form.nesting_level class="form-input" %}
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label">{{ form.primary_meaning.label }}</label>
+                {% render_field form.primary_meaning class="form-input" %}
+            </div>
+
+            <div>
+                <label class="form-label">{{ form.additional_meanings.label }}</label>
+                {% render_field form.additional_meanings class="form-input" %}
+            </div>
+
+            <div>
+                <label class="form-label">{{ form.notes.label }}</label>
+                {% render_field form.notes class="form-input" %}
+            </div>
+        </div>
+
+        <div class="flex gap-3">
+            <button type="submit" class="btn-primary flex-1 justify-center">{% if editing %}Guardar cambios{% else %}Crear símbolo{% endif %}</button>
+            <a href="{% url 'training:symbol_list' %}" class="btn-secondary flex-1 justify-center text-center">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -51,6 +51,47 @@
             </label>
         </div>
 
+        <!-- IAVW-specific fields (shown conditionally) -->
+        <div class="card space-y-4" id="iavw-fields" style="display:none;">
+            <h2 class="font-semibold text-sm">Campos IAVW</h2>
+            <div id="text-fields" style="display:none;">
+                <div class="space-y-3">
+                    <div>
+                        <label class="form-label">{{ form.text_content.label }}</label>
+                        {% render_field form.text_content class="form-input" %}
+                    </div>
+                    <div>
+                        <label class="form-label">{{ form.text_format.label }}</label>
+                        {% render_field form.text_format class="form-input" %}
+                    </div>
+                    <label class="flex items-center gap-3">
+                        {% render_field form.readback_verified class="rounded text-indigo-600" %}
+                        <span class="text-sm">{{ form.readback_verified.label }}</span>
+                    </label>
+                </div>
+            </div>
+            <div id="comp-fields" style="display:none;">
+                <div>
+                    <label class="form-label">{{ form.composition_layer_count.label }}</label>
+                    {% render_field form.composition_layer_count class="form-input" %}
+                </div>
+            </div>
+            <div id="annot-fields" style="display:none;">
+                <label class="flex items-center gap-3">
+                    {% render_field form.bounding_boxes_used class="rounded text-indigo-600" %}
+                    <span class="text-sm">{{ form.bounding_boxes_used.label }}</span>
+                </label>
+            </div>
+            <div id="symbol-fields" style="display:none;">
+                <label class="form-label">{{ form.symbols_used.label }}</label>
+                <div class="space-y-1 text-sm">
+                    {% for checkbox in form.symbols_used %}
+                    <label class="flex items-center gap-2">{{ checkbox.tag }} {{ checkbox.choice_label }}</label>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
         <div class="card space-y-4">
             <div>
                 <label class="form-label">{{ form.repetition_count.label }}</label>
@@ -63,6 +104,30 @@
         </div>
 
         <button type="submit" class="btn-primary w-full justify-center">Guardar captura</button>
+
+        <script>
+        (function() {
+            var typeSelect = document.getElementById('id_capture_type');
+            var iavwFields = document.getElementById('iavw-fields');
+            var textFields = document.getElementById('text-fields');
+            var compFields = document.getElementById('comp-fields');
+            var annotFields = document.getElementById('annot-fields');
+            var symbolFields = document.getElementById('symbol-fields');
+
+            function updateFields() {
+                var val = typeSelect.value;
+                var isIavw = ['TEXT', 'COMP', 'ANNOT', 'SYMBOL'].indexOf(val) !== -1;
+                iavwFields.style.display = isIavw ? '' : 'none';
+                textFields.style.display = val === 'TEXT' ? '' : 'none';
+                compFields.style.display = val === 'COMP' ? '' : 'none';
+                annotFields.style.display = val === 'ANNOT' ? '' : 'none';
+                symbolFields.style.display = val === 'SYMBOL' ? '' : 'none';
+            }
+
+            typeSelect.addEventListener('change', updateFields);
+            updateFields();
+        })();
+        </script>
     </form>
 </div>
 {% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load training_tags %}
+
+{% block title %}Historial Workspace{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold">Historial Workspace</h1>
+        <a href="{% url 'training:workspace_start' %}" class="btn-primary">+ Nuevo ejercicio</a>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex gap-2 flex-wrap">
+        <a href="{% url 'training:workspace_log' %}" class="badge {% if not type_filter %}bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300{% else %}bg-gray-100 dark:bg-gray-700{% endif %}">Todos</a>
+        {% for code, label in exercise_types %}
+        <a href="?type={{ code }}" class="badge {% if type_filter == code %}bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300{% else %}bg-gray-100 dark:bg-gray-700{% endif %}">{{ label }}</a>
+        {% endfor %}
+    </div>
+
+    {% if exercises %}
+    <div class="space-y-2">
+        {% for e in exercises %}
+        <a href="{% url 'training:workspace_detail' e.pk %}" class="card block hover:shadow-md transition-shadow !p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="font-medium text-sm">{{ e.get_exercise_type_display }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ e.date|date:"d M Y H:i" }} — {{ e.duration|format_duration }}</p>
+                    {% if e.description %}<p class="text-xs text-gray-600 dark:text-gray-400 mt-1">{{ e.description|truncatechars:60 }}</p>{% endif %}
+                </div>
+                {% if e.vividness_rating %}
+                <span class="text-lg font-bold text-indigo-600 dark:text-indigo-400">{{ e.average_rating|floatformat:1 }}</span>
+                {% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-gray-500 dark:text-gray-400 card">No hay ejercicios registrados. <a href="{% url 'training:workspace_start' %}" class="text-indigo-600 dark:text-indigo-400">Iniciar uno</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

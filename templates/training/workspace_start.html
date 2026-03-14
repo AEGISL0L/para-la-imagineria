@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}Workspace IAVW{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold">Workspace IAVW</h1>
+        <a href="{% url 'training:workspace_log' %}" class="btn-secondary">Historial</a>
+    </div>
+
+    <p class="text-sm text-gray-600 dark:text-gray-400">Selecciona el tipo de ejercicio y la duración. Al terminar, evaluarás el resultado.</p>
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for value, label in form.fields.exercise_type.choices %}
+            <label class="card cursor-pointer hover:shadow-md transition-shadow border-2 border-transparent has-[:checked]:border-indigo-500">
+                <input type="radio" name="exercise_type" value="{{ value }}" class="sr-only" {% if forloop.first %}checked{% endif %}>
+                <div class="text-center">
+                    <div class="text-2xl mb-2">
+                        {% if value == 'TEXT' %}📝{% elif value == 'COMP' %}🔲{% elif value == 'ANNOT' %}🏷️{% elif value == 'SYMBOL' %}⊙{% else %}🧠{% endif %}
+                    </div>
+                    <p class="font-semibold text-sm">{{ label }}</p>
+                </div>
+            </label>
+            {% endfor %}
+        </div>
+
+        <div class="card">
+            <label class="form-label">{{ form.duration.label }}</label>
+            {% render_field form.duration class="form-input" %}
+        </div>
+
+        <button type="submit" class="btn-primary w-full justify-center">Iniciar ejercicio</button>
+    </form>
+</div>
+{% endblock %}

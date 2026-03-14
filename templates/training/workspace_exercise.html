@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Workspace — {{ exercise.get_exercise_type_display }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    body.session-active nav, body.session-active main > *:not(#session-container) { display: none !important; }
+    body.session-active main { padding: 0 !important; max-width: 100% !important; }
+    body.session-active { background: black !important; }
+    #session-container { position: fixed; inset: 0; z-index: 100; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="session-container" class="flex items-center justify-center bg-black text-white">
+    <!-- Start -->
+    <div id="start-screen" class="text-center cursor-pointer select-none p-8">
+        <p class="text-lg text-gray-500 mb-2">Workspace IAVW</p>
+        <p class="text-4xl mb-4">{{ exercise.get_exercise_type_display }}</p>
+        <p class="text-xl text-gray-400 mb-8">{{ exercise.duration }}s</p>
+        <p class="text-lg animate-pulse">Pulsa para comenzar</p>
+        <p class="text-sm text-gray-500 mt-2">(o barra espaciadora)</p>
+    </div>
+
+    <!-- Exercise phase -->
+    <div id="exercise-phase" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black">
+        <p class="text-gray-500 text-sm mb-2">{{ exercise.get_exercise_type_display }}</p>
+        <div id="countdown" class="text-6xl font-mono text-white/50 mb-8"></div>
+        <p class="text-gray-600 text-sm">
+            {% if exercise.exercise_type == 'TEXT' %}Proyecta texto en tu workspace visual
+            {% elif exercise.exercise_type == 'COMP' %}Compone capas en tu workspace visual
+            {% elif exercise.exercise_type == 'ANNOT' %}Anota con bounding boxes el contenido visual
+            {% elif exercise.exercise_type == 'SYMBOL' %}Trabaja con tus símbolos internos
+            {% else %}Usa todas las capacidades del workspace
+            {% endif %}
+        </p>
+        <button id="end-early-btn" class="mt-12 px-8 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-white/60 transition-colors text-sm">
+            Terminar antes
+        </button>
+        <p class="text-xs text-gray-700 mt-4">(o Esc para salir)</p>
+    </div>
+
+    <!-- Done -->
+    <div id="done-phase" class="hidden absolute inset-0 flex items-center justify-center bg-black">
+        <p class="text-xl text-white/60 animate-pulse">Redirigiendo a evaluación...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.body.classList.add('session-active');
+
+(function() {
+    var duration = {{ exercise.duration }};
+    var exerciseId = {{ exercise.pk }};
+    var remaining = duration;
+
+    var startScreen = document.getElementById('start-screen');
+    var exercisePhase = document.getElementById('exercise-phase');
+    var donePhase = document.getElementById('done-phase');
+    var countdownEl = document.getElementById('countdown');
+    var endEarlyBtn = document.getElementById('end-early-btn');
+    var timer = null;
+
+    var bellSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2JkZeXk4yFfXd3fIWOlZqamJGJgXt4e4KLk5qcm5eSi4R+e3yBiZKYnJqWkImDfnt9g4uTmZyanJORioR+fH6Ei5OYmpuZk46IgX18f4aOlZmamZWPiIN+fH+Fj5WZmpqWkIqEf31/hY+WmZqalZCKhIB+f4WPlpmamZWQi4WAfn+Gj5aZmpmVkIuFgH+AhpCXmZqZlI+LhYCAgoiRl5mYl5KNiIKAgYWMk5iZmJSSjIeCgYOHjpSYmJeUkYyHg4KEiI+VmJeXk5CMh4OChYqRlpiXlpKOiYSChYmQlZeXlpKOiYWDhImQlZeWlpKPioWDhIqQlZeWlZKPioaDhYqRlZaWlZGOioaEhYuRlZaVlJGOioaFhouSlZaVlJGOi4eGh4ySlZWVk5COi4eGiI2TlZWUk4+Ni4iHiY2TlJSUk4+NjImJi4+TlJSTko+NjImKjJCTk5OSko+OjImKjJCTk5KRkI+OjIuMjpGTk5GRkI+OjYyNj5GTkpGRkI+PjY2Oj5GTkpCQkI+PjY6PkJGSkJCQj4+Ojo+QkZGQkI+Pj4+PkJCRkZCPj4+Pj4+QkJCQkI+Pj4+Pj5CQkJCPj4+Pj4+PkJCQj4+Pj4+Pj5CQkI+Pj4+Pj4+QkJCPj4+Pj4+Pj5CQj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+Pj4+P');
+
+    function fmt(s) {
+        var m = Math.floor(s / 60);
+        var sec = s % 60;
+        return m + ':' + (sec < 10 ? '0' : '') + sec;
+    }
+
+    function startExercise() {
+        startScreen.classList.add('hidden');
+        exercisePhase.classList.remove('hidden');
+        countdownEl.textContent = fmt(remaining);
+
+        timer = setInterval(function() {
+            remaining--;
+            countdownEl.textContent = fmt(remaining);
+            if (remaining <= 0) {
+                finishExercise();
+            }
+        }, 1000);
+    }
+
+    function finishExercise() {
+        if (timer) clearInterval(timer);
+        exercisePhase.classList.add('hidden');
+        donePhase.classList.remove('hidden');
+        try { bellSound.play(); } catch(e) {}
+        setTimeout(function() {
+            window.location.href = '/workspace/' + exerciseId + '/assess/';
+        }, 1200);
+    }
+
+    startScreen.addEventListener('click', startExercise);
+    endEarlyBtn.addEventListener('click', finishExercise);
+
+    document.addEventListener('keydown', function(e) {
+        if (e.code === 'Space' || e.code === 'Enter') {
+            e.preventDefault();
+            if (!startScreen.classList.contains('hidden')) {
+                startExercise();
+            }
+        }
+        if (e.code === 'Escape') {
+            if (timer) clearInterval(timer);
+            window.location.href = '/workspace/log/';
+        }
+    });
+
+    if (document.fullscreenEnabled) {
+        document.addEventListener('click', function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(function(){});
+            }
+        }, { once: true });
+    }
+})();
+</script>
+{% endblock %}

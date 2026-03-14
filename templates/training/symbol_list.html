@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load training_tags %}
+
+{% block title %}Símbolos — IAVW{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold">Vocabulario simbólico</h1>
+        <a href="{% url 'training:symbol_create' %}" class="btn-primary">+ Nuevo símbolo</a>
+    </div>
+
+    {% if symbols %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {% for s in symbols %}
+        <div class="card">
+            <div class="flex items-start justify-between">
+                <div class="text-4xl mb-2">{{ s|symbol_glyph:"2.5rem" }}</div>
+                <span class="badge bg-gray-100 dark:bg-gray-700 text-xs">{{ s.get_geometric_form_display }}</span>
+            </div>
+            <h3 class="font-semibold">{{ s.name }}</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ s.primary_meaning }}</p>
+            {% if s.additional_meanings %}
+            <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">{{ s.additional_meanings }}</p>
+            {% endif %}
+            {% if s.nesting_level > 0 %}
+            <span class="badge bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 text-xs mt-2">Anidado (nivel {{ s.nesting_level }})</span>
+            {% endif %}
+            <div class="flex gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                <a href="{% url 'training:symbol_edit' s.pk %}" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Editar</a>
+                <a href="{% url 'training:symbol_confirm_delete' s.pk %}" class="text-xs text-red-600 dark:text-red-400 hover:underline">Eliminar</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-gray-500 dark:text-gray-400 card">No hay símbolos definidos. <a href="{% url 'training:symbol_create' %}" class="text-indigo-600 dark:text-indigo-400">Crear uno</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

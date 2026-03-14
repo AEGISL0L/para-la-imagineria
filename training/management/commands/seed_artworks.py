@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from training.models import BrainArea, Phase, TrainingMethod, Artwork, UserProfile
+from training.models import BrainArea, Phase, TrainingMethod, Artwork, UserProfile, Symbol, Capability
 
 
 BRAIN_AREAS = [
@@ -19,6 +19,7 @@ BRAIN_AREAS = [
     ('AMIG', 'Amígdala', 'Procesamiento emocional, modulación de atención. Amplifica atención a imágenes con carga emocional. Las imágenes emocionalmente cargadas se retienen mejor.', 'Amplificador emocional'),
     ('PFC', 'Corteza prefrontal', 'Control top-down, atención voluntaria, working memory. Inicia y sostiene la imagen mental. Sin prefrontal activo la imagen se desvanece en 1-2s.', 'Director de orquesta'),
     ('PAR', 'Corteza parietal posterior', 'Mapa espacial, saliencia, tamaño relativo, working memory espacial. Parte de la vía dorsal.', 'Mapa espacial'),
+    ('VWFA', 'Visual Word Form Area', 'Giro fusiforme izquierdo. Área culturalmente adquirida (reciclaje neuronal, Dehaene 2007). Procesa formas de letras y palabras. Nodo bimodal: visual pero conectado a Broca/Wernicke. Se activa durante lectura y proyección de texto.', 'Caja de letras del cerebro'),
 ]
 
 PHASES = [
@@ -395,6 +396,79 @@ ARTWORKS = [
 ]
 # fmt: on
 
+SYMBOLS = [
+    {'name': 'circular', 'glyph': '\u25CE', 'geometric_form': 'CIRCLE', 'nesting_level': 0,
+     'primary_meaning': 'esto es SI', 'additional_meanings': 'Afirmación, confirmación, acuerdo interno'},
+    {'name': 'cruce', 'glyph': '\u2715', 'geometric_form': 'CROSS', 'nesting_level': 0,
+     'primary_meaning': 'esto es NO', 'additional_meanings': 'Negación, rechazo, bloqueo'},
+    {'name': 'triángulo', 'glyph': '\u25B3', 'geometric_form': 'TRIANGLE', 'nesting_level': 0,
+     'primary_meaning': 'atención / alerta', 'additional_meanings': 'Señal de importancia, marcador de prioridad'},
+    {'name': 'triángulo²', 'glyph': '△²', 'geometric_form': 'TRIANGLE', 'nesting_level': 1,
+     'primary_meaning': 'urgencia / doble alerta', 'additional_meanings': 'Escalamiento, intensificación de la señal'},
+]
+
+CAPABILITIES = [
+    # CAPTURE
+    {'code': 'FFA_CAPTURE', 'name': 'Captura FFA (rostros)', 'category': 'CAPTURE',
+     'status': 'confirmed', 'confirmed_date': '2026-03-09',
+     'description': 'Captura al vuelo de rostros con activación FFA.', 'brain_areas': ['FFA']},
+    {'code': 'EBA_CAPTURE', 'name': 'Captura EBA (cuerpos)', 'category': 'CAPTURE',
+     'status': 'confirmed', 'confirmed_date': '2026-03-09',
+     'description': 'Captura al vuelo de cuerpos/posturas con activación EBA.', 'brain_areas': ['EBA']},
+    {'code': 'PPA_CAPTURE', 'name': 'Captura PPA (lugares)', 'category': 'CAPTURE',
+     'status': 'confirmed', 'confirmed_date': '2026-03-09',
+     'description': 'Integración persona+lugar con activación PPA.', 'brain_areas': ['PPA']},
+    {'code': 'MULTI_CAPTURE', 'name': 'Captura multi-área', 'category': 'CAPTURE',
+     'status': 'confirmed', 'confirmed_date': '2026-03-10',
+     'description': 'Captura simultánea de múltiples áreas (FFA+EBA+PPA).', 'brain_areas': ['FFA', 'EBA', 'PPA']},
+
+    # PROJECTION
+    {'code': 'TEXT_PROJECTION', 'name': 'Proyección de texto (VWFA)', 'category': 'PROJECTION',
+     'status': 'confirmed', 'confirmed_date': '2026-03-14',
+     'description': 'Oraciones completas proyectadas en el workspace visual con readback funcional.', 'brain_areas': ['VWFA', 'PFC']},
+    {'code': 'TEXT_FORMAT_SELECT', 'name': 'Selección de formato de texto', 'category': 'PROJECTION',
+     'status': 'confirmed', 'confirmed_date': '2026-03-14',
+     'description': 'Selección deliberada entre caligrafía y tipográfico.', 'brain_areas': ['VWFA']},
+    {'code': 'TEXT_ORIGINAL', 'name': 'Composición original generativa', 'category': 'PROJECTION',
+     'status': 'confirmed', 'confirmed_date': '2026-03-14',
+     'description': 'Generación de texto original (no solo reproducción).', 'brain_areas': ['VWFA', 'PFC']},
+
+    # COMPOSITION
+    {'code': 'MULTI_SOURCE', 'name': 'Composición multi-fuente', 'category': 'COMPOSITION',
+     'status': 'confirmed', 'confirmed_date': '2026-03-14',
+     'description': 'Composición visual con 3+ capas simultáneas sin degradación.', 'brain_areas': ['V1', 'PFC']},
+    {'code': 'LAYER_STABILITY', 'name': 'Estabilidad de capas', 'category': 'COMPOSITION',
+     'status': 'confirmed', 'confirmed_date': '2026-03-14',
+     'description': '3+ capas mantenidas sin degradación perceptible.', 'brain_areas': ['V1', 'PFC', 'PAR']},
+
+    # ANNOTATION
+    {'code': 'BBOX_ANNOTATION', 'name': 'Anotación con bounding boxes', 'category': 'ANNOTATION',
+     'status': 'confirmed', 'confirmed_date': '2026-03-14',
+     'description': 'Etiquetado deliberado con bounding boxes estilo CV sobre contenido visual.', 'brain_areas': ['PFC', 'PAR']},
+    {'code': 'GENERALIZED_LABELS', 'name': 'Etiquetado generalizado', 'category': 'ANNOTATION',
+     'status': 'confirmed', 'confirmed_date': '2026-03-14',
+     'description': 'Anotación generalizada a rostros, personas y objetos.', 'brain_areas': ['PFC', 'FFA', 'EBA', 'LOC']},
+
+    # CONTROL
+    {'code': 'DIRECTIONAL_CTRL', 'name': 'Control direccional', 'category': 'CONTROL',
+     'status': 'confirmed', 'confirmed_date': '2026-03-10',
+     'description': 'Control total sin intrusiones no deseadas.', 'brain_areas': ['PFC']},
+    {'code': 'EYES_OPEN', 'name': 'Imaginería con ojos abiertos', 'category': 'CONTROL',
+     'status': 'confirmed', 'confirmed_date': '2026-03-09',
+     'description': 'Imaginería funcional con ojos abiertos y coordenadas retinales.', 'brain_areas': ['V1', 'PFC']},
+    {'code': 'DELIBERATE_REPETITION', 'name': 'Repetición deliberada', 'category': 'CONTROL',
+     'status': 'confirmed', 'confirmed_date': '2026-03-10',
+     'description': 'Sustituto funcional de marcado emocional para consolidación.', 'brain_areas': ['PFC']},
+
+    # RETENTION
+    {'code': 'OVERNIGHT_CONSOL', 'name': 'Consolidación nocturna', 'category': 'RETENTION',
+     'status': 'confirmed', 'confirmed_date': '2026-03-10',
+     'description': 'Capturas del día anterior accesibles al día siguiente.', 'brain_areas': []},
+    {'code': 'CONTINUOUS_ACQ', 'name': 'Modo adquisición continua', 'category': 'RETENTION',
+     'status': 'confirmed', 'confirmed_date': '2026-03-09',
+     'description': 'Adquisición continua de capturas durante actividad normal.', 'brain_areas': ['PFC']},
+]
+
 
 class Command(BaseCommand):
     help = 'Puebla la base de datos con las 35 obras, fases, métodos y áreas cerebrales'
@@ -464,5 +538,40 @@ class Command(BaseCommand):
         self.stdout.write('Creando perfil de usuario...')
         UserProfile.objects.get_or_create(pk=1)
         self.stdout.write(self.style.SUCCESS('  Perfil creado'))
+
+        self.stdout.write('Creando símbolos...')
+        for s in SYMBOLS:
+            Symbol.objects.update_or_create(
+                name=s['name'],
+                defaults={
+                    'glyph': s['glyph'],
+                    'geometric_form': s['geometric_form'],
+                    'nesting_level': s['nesting_level'],
+                    'primary_meaning': s['primary_meaning'],
+                    'additional_meanings': s['additional_meanings'],
+                },
+            )
+        self.stdout.write(self.style.SUCCESS(f'  {len(SYMBOLS)} símbolos creados'))
+
+        self.stdout.write('Creando capacidades...')
+        from datetime import date as date_cls
+        for c in CAPABILITIES:
+            conf_date = None
+            if c.get('confirmed_date'):
+                parts = c['confirmed_date'].split('-')
+                conf_date = date_cls(int(parts[0]), int(parts[1]), int(parts[2]))
+            obj, _ = Capability.objects.update_or_create(
+                code=c['code'],
+                defaults={
+                    'name': c['name'],
+                    'category': c['category'],
+                    'status': c['status'],
+                    'confirmed_date': conf_date,
+                    'description': c['description'],
+                },
+            )
+            areas = [area_map[a] for a in c.get('brain_areas', []) if a in area_map]
+            obj.brain_areas.set(areas)
+        self.stdout.write(self.style.SUCCESS(f'  {len(CAPABILITIES)} capacidades creadas'))
 
         self.stdout.write(self.style.SUCCESS('\nSeed completado.'))

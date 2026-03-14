@@ -2,6 +2,7 @@ from django.contrib import admin
 from .models import (
     BrainArea, Phase, TrainingMethod, Artwork,
     UserProfile, TrainingSession, FieldCapture, VVIQResponse,
+    Symbol, WorkspaceExercise, Capability,
 )
 
 
@@ -50,3 +51,24 @@ class FieldCaptureAdmin(admin.ModelAdmin):
 @admin.register(VVIQResponse)
 class VVIQResponseAdmin(admin.ModelAdmin):
     list_display = ('total_score', 'date', 'context')
+
+
+@admin.register(Symbol)
+class SymbolAdmin(admin.ModelAdmin):
+    list_display = ('glyph', 'name', 'geometric_form', 'primary_meaning')
+    search_fields = ('name', 'primary_meaning')
+
+
+@admin.register(WorkspaceExercise)
+class WorkspaceExerciseAdmin(admin.ModelAdmin):
+    list_display = ('exercise_type', 'date', 'layer_count', 'vividness_rating')
+    list_filter = ('exercise_type', 'date')
+    filter_horizontal = ('sources_used', 'symbols_used')
+
+
+@admin.register(Capability)
+class CapabilityAdmin(admin.ModelAdmin):
+    list_display = ('code', 'name', 'category', 'status', 'confirmed_date')
+    list_filter = ('category', 'status')
+    search_fields = ('code', 'name')
+    filter_horizontal = ('brain_areas',)

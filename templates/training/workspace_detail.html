@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load training_tags %}
+
+{% block title %}Ejercicio {{ exercise.pk }}{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold">{{ exercise.get_exercise_type_display }}</h1>
+        <span class="text-sm text-gray-500 dark:text-gray-400">{{ exercise.date|date:"d M Y H:i" }}</span>
+    </div>
+
+    <div class="card space-y-3">
+        <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+                <p class="text-gray-500 dark:text-gray-400">Duración</p>
+                <p class="font-semibold">{{ exercise.duration|format_duration }}</p>
+            </div>
+            {% if exercise.average_rating %}
+            <div>
+                <p class="text-gray-500 dark:text-gray-400">Media</p>
+                <p class="font-semibold text-indigo-600 dark:text-indigo-400">{{ exercise.average_rating|floatformat:1 }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Ratings -->
+    {% if exercise.vividness_rating %}
+    <div class="card">
+        <h2 class="font-semibold text-sm mb-3">Evaluación</h2>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+                <p class="text-gray-500 dark:text-gray-400">Viveza</p>
+                <p class="text-2xl font-bold">{{ exercise.vividness_rating }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500 dark:text-gray-400">Estabilidad</p>
+                <p class="text-2xl font-bold">{{ exercise.stability_rating }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500 dark:text-gray-400">Detalle</p>
+                <p class="text-2xl font-bold">{{ exercise.detail_rating }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500 dark:text-gray-400">Claridad semántica</p>
+                <p class="text-2xl font-bold">{{ exercise.semantic_clarity }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Type-specific data -->
+    {% if exercise.text_content %}
+    <div class="card">
+        <h2 class="font-semibold text-sm mb-2">Texto</h2>
+        <p class="text-sm bg-gray-50 dark:bg-gray-900 rounded p-3 font-mono">{{ exercise.text_content }}</p>
+        {% if exercise.text_format %}
+        <p class="text-xs text-gray-500 mt-2">Formato: {{ exercise.get_text_format_display }}</p>
+        {% endif %}
+        {% if exercise.text_original_composition %}<span class="badge bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 text-xs mt-1">Composición original</span>{% endif %}
+        {% if exercise.readback_success %}<span class="badge bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs mt-1">Readback exitoso</span>{% endif %}
+    </div>
+    {% endif %}
+
+    {% if exercise.layer_count > 0 %}
+    <div class="card">
+        <h2 class="font-semibold text-sm mb-2">Composición</h2>
+        <p class="text-sm">{{ exercise.layer_count }} capas{% if exercise.degradation_noted %} — <span class="text-amber-600">con degradación</span>{% else %} — <span class="text-green-600">sin degradación</span>{% endif %}</p>
+        {% if exercise.sources_used.exists %}
+        <div class="flex flex-wrap gap-1 mt-2">
+            {% for area in exercise.sources_used.all %}
+            <span class="badge bg-gray-100 dark:bg-gray-700 text-xs">{{ area.code }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if exercise.annotation_count > 0 %}
+    <div class="card">
+        <h2 class="font-semibold text-sm mb-2">Anotación</h2>
+        <p class="text-sm">{{ exercise.annotation_count }} anotaciones{% if exercise.bounding_boxes_used %} con bounding boxes{% endif %}</p>
+    </div>
+    {% endif %}
+
+    {% if exercise.symbols_used.exists %}
+    <div class="card">
+        <h2 class="font-semibold text-sm mb-2">Símbolos</h2>
+        <div class="flex flex-wrap gap-2">
+            {% for sym in exercise.symbols_used.all %}
+            <span class="badge bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300">{{ sym|symbol_glyph:"1em" }} {{ sym.name }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if exercise.description %}
+    <div class="card">
+        <h2 class="font-semibold text-sm mb-2">Descripción</h2>
+        <p class="text-sm text-gray-700 dark:text-gray-300">{{ exercise.description }}</p>
+    </div>
+    {% endif %}
+
+    {% if exercise.notes %}
+    <div class="card">
+        <h2 class="font-semibold text-sm mb-2">Notas</h2>
+        <p class="text-sm text-gray-700 dark:text-gray-300">{{ exercise.notes }}</p>
+    </div>
+    {% endif %}
+
+    <a href="{% url 'training:workspace_log' %}" class="btn-secondary w-full justify-center text-center">Ver historial</a>
+</div>
+{% endblock %}

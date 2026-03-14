@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}Evaluar ejercicio{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto space-y-6">
+    <h1 class="text-2xl font-bold">Evaluar: {{ exercise.get_exercise_type_display }}</h1>
+    <p class="text-sm text-gray-500 dark:text-gray-400">Duración configurada: {{ exercise.duration }}s</p>
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+
+        <!-- Type-specific fields -->
+        {% if exercise.exercise_type == 'TEXT' or exercise.exercise_type == 'FULL' %}
+        <div class="card space-y-4" id="text-fields">
+            <h2 class="font-semibold text-sm">Texto</h2>
+            <div>
+                <label class="form-label">{{ form.text_content.label }}</label>
+                {% render_field form.text_content class="form-input" %}
+            </div>
+            <div>
+                <label class="form-label">{{ form.text_format.label }}</label>
+                {% render_field form.text_format class="form-input" %}
+            </div>
+            <label class="flex items-center gap-3">
+                {% render_field form.text_original_composition class="rounded text-indigo-600" %}
+                <span class="text-sm">{{ form.text_original_composition.label }}</span>
+            </label>
+            <label class="flex items-center gap-3">
+                {% render_field form.readback_success class="rounded text-indigo-600" %}
+                <span class="text-sm">{{ form.readback_success.label }}</span>
+            </label>
+        </div>
+        {% endif %}
+
+        {% if exercise.exercise_type == 'COMP' or exercise.exercise_type == 'FULL' %}
+        <div class="card space-y-4" id="comp-fields">
+            <h2 class="font-semibold text-sm">Composición</h2>
+            <div>
+                <label class="form-label">{{ form.layer_count.label }}</label>
+                {% render_field form.layer_count class="form-input" %}
+            </div>
+            <label class="flex items-center gap-3">
+                {% render_field form.degradation_noted class="rounded text-indigo-600" %}
+                <span class="text-sm">{{ form.degradation_noted.label }}</span>
+            </label>
+            <div>
+                <label class="form-label">{{ form.sources_used.label }}</label>
+                <div class="grid grid-cols-2 gap-1 text-sm">
+                    {% for checkbox in form.sources_used %}
+                    <label class="flex items-center gap-2">{{ checkbox.tag }} {{ checkbox.choice_label }}</label>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if exercise.exercise_type == 'ANNOT' or exercise.exercise_type == 'FULL' %}
+        <div class="card space-y-4" id="annot-fields">
+            <h2 class="font-semibold text-sm">Anotación</h2>
+            <div>
+                <label class="form-label">{{ form.annotation_count.label }}</label>
+                {% render_field form.annotation_count class="form-input" %}
+            </div>
+            <label class="flex items-center gap-3">
+                {% render_field form.bounding_boxes_used class="rounded text-indigo-600" %}
+                <span class="text-sm">{{ form.bounding_boxes_used.label }}</span>
+            </label>
+        </div>
+        {% endif %}
+
+        {% if exercise.exercise_type == 'SYMBOL' or exercise.exercise_type == 'FULL' %}
+        <div class="card space-y-4" id="symbol-fields">
+            <h2 class="font-semibold text-sm">Símbolos</h2>
+            <div class="grid grid-cols-2 gap-1 text-sm">
+                {% for checkbox in form.symbols_used %}
+                <label class="flex items-center gap-2">{{ checkbox.tag }} {{ checkbox.choice_label }}</label>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Evaluation ratings -->
+        <div class="card space-y-4">
+            <h2 class="font-semibold text-sm">Evaluación</h2>
+            {% for field_name in "vividness_rating,stability_rating,detail_rating,semantic_clarity"|make_list %}{% endfor %}
+
+            <div>
+                <label class="form-label flex justify-between">
+                    <span>{{ form.vividness_rating.label }}</span>
+                    <span id="vividness-val" class="font-mono text-indigo-600 dark:text-indigo-400">5</span>
+                </label>
+                <input type="range" name="vividness_rating" min="1" max="10" value="5" class="w-full accent-indigo-600" id="id_vividness_rating">
+            </div>
+            <div>
+                <label class="form-label flex justify-between">
+                    <span>{{ form.stability_rating.label }}</span>
+                    <span id="stability-val" class="font-mono text-indigo-600 dark:text-indigo-400">5</span>
+                </label>
+                <input type="range" name="stability_rating" min="1" max="10" value="5" class="w-full accent-indigo-600" id="id_stability_rating">
+            </div>
+            <div>
+                <label class="form-label flex justify-between">
+                    <span>{{ form.detail_rating.label }}</span>
+                    <span id="detail-val" class="font-mono text-indigo-600 dark:text-indigo-400">5</span>
+                </label>
+                <input type="range" name="detail_rating" min="1" max="10" value="5" class="w-full accent-indigo-600" id="id_detail_rating">
+            </div>
+            <div>
+                <label class="form-label flex justify-between">
+                    <span>{{ form.semantic_clarity.label }}</span>
+                    <span id="semantic-val" class="font-mono text-indigo-600 dark:text-indigo-400">5</span>
+                </label>
+                <input type="range" name="semantic_clarity" min="1" max="10" value="5" class="w-full accent-indigo-600" id="id_semantic_clarity">
+            </div>
+        </div>
+
+        <div class="card space-y-4">
+            <div>
+                <label class="form-label">{{ form.description.label }}</label>
+                {% render_field form.description class="form-input" placeholder="Qué experimentaste durante el ejercicio" %}
+            </div>
+            <div>
+                <label class="form-label">{{ form.notes.label }}</label>
+                {% render_field form.notes class="form-input" %}
+            </div>
+        </div>
+
+        <button type="submit" class="btn-primary w-full justify-center">Guardar evaluación</button>
+    </form>
+</div>
+
+<script>
+['vividness_rating', 'stability_rating', 'detail_rating', 'semantic_clarity'].forEach(function(name) {
+    var input = document.getElementById('id_' + name);
+    var valId = name.replace('_rating', '-val').replace('semantic_clarity', 'semantic-val');
+    var valEl = document.getElementById(valId);
+    if (input && valEl) {
+        input.addEventListener('input', function() { valEl.textContent = this.value; });
+    }
+});
+</script>
+{% endblock %}

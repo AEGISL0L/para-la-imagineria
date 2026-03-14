@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load training_tags %}
+
+{% block title %}Eliminar símbolo{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto space-y-6">
+    <h1 class="text-2xl font-bold">Eliminar símbolo</h1>
+
+    <div class="card">
+        <div class="text-center mb-4">
+            <span class="text-5xl">{{ symbol|symbol_glyph:"3rem" }}</span>
+        </div>
+        <p class="text-center text-gray-700 dark:text-gray-300">
+            ¿Eliminar <strong>{{ symbol.name }}</strong> ({{ symbol.primary_meaning }})?
+        </p>
+    </div>
+
+    <div class="flex gap-3">
+        <form method="post" action="{% url 'training:symbol_delete' symbol.pk %}" class="flex-1">
+            {% csrf_token %}
+            <button type="submit" class="btn-danger w-full justify-center">Eliminar</button>
+        </form>
+        <a href="{% url 'training:symbol_list' %}" class="btn-secondary flex-1 text-center">Cancelar</a>
+    </div>
+</div>
+{% endblock %}

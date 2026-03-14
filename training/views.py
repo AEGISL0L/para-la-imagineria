@@ -8,12 +8,14 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .forms import (
-    FieldCaptureForm, SessionAssessForm,
-    UserProfileForm, VVIQForm,
+    CapabilityUpdateForm, FieldCaptureForm, SessionAssessForm,
+    SymbolForm, UserProfileForm, VVIQForm,
+    WorkspaceAssessForm, WorkspaceStartForm,
 )
 from .models import (
-    Artwork, FieldCapture, Phase, TrainingMethod, TrainingSession,
-    UserProfile, VVIQResponse,
+    Artwork, BrainArea, Capability, FieldCapture, Phase,
+    Symbol, TrainingMethod, TrainingSession,
+    UserProfile, VVIQResponse, WorkspaceExercise,
 )
 
 
@@ -37,6 +39,13 @@ def dashboard(request):
         delta = (timezone.now().date() - profile.program_start_date).days
         current_week = min(delta // 7 + 1, 8)
 
+    # IAVW stats
+    total_workspace = WorkspaceExercise.objects.count()
+    total_symbols = Symbol.objects.count()
+    total_capabilities = Capability.objects.count()
+    confirmed_capabilities = Capability.objects.filter(status='confirmed').count()
+    recent_workspace = WorkspaceExercise.objects.all()[:5]
+
     return render(request, 'training/dashboard.html', {
         'recent_sessions': recent_sessions,
         'recent_captures': recent_captures,
@@ -44,6 +53,11 @@ def dashboard(request):
         'phases': phases,
         'avg_ratings': avg_ratings,
         'current_week': current_week,
+        'total_workspace': total_workspace,
+        'total_symbols': total_symbols,
+        'total_capabilities': total_capabilities,
+        'confirmed_capabilities': confirmed_capabilities,
+        'recent_workspace': recent_workspace,
     })
 
 
@@ -290,11 +304,33 @@ def progress(request):
             'avg_detail': avg['avg_d'],
         })
 
+    # Workspace stats
+    total_workspace = WorkspaceExercise.objects.count()
+    workspace_by_type = {}
+    for et_code, et_label in WorkspaceExercise.EXERCISE_TYPES:
+        ws_qs = WorkspaceExercise.objects.filter(exercise_type=et_code)
+        ws_avg = ws_qs.aggregate(
+            avg_v=Avg('vividness_rating'),
+            avg_s=Avg('stability_rating'),
+            avg_d=Avg('detail_rating'),
+            avg_sc=Avg('semantic_clarity'),
+            count=Count('id'),
+        )
+        if ws_avg['count'] > 0:
+            workspace_by_type[et_label] = ws_avg
+
+    confirmed_capabilities = Capability.objects.filter(status='confirmed').count()
+    total_capabilities = Capability.objects.count()
+
     return render(request, 'training/progress.html', {
         'total_sessions': total_sessions,
         'total_captures': total_captures,
         'vviq_responses': vviq_responses,
         'phase_stats': phase_stats,
+        'total_workspace': total_workspace,
+        'workspace_by_type': workspace_by_type,
+        'confirmed_capabilities': confirmed_capabilities,
+        'total_capabilities': total_capabilities,
     })
 
 
@@ -381,4 +417,174 @@ def api_progress_data(request):
         'scores': [v['total_score'] for v in vviq_data],
     }
 
+    # Workspace exercise data
+    ws_sessions = WorkspaceExercise.objects.filter(
+        vividness_rating__isnull=False,
+    ).order_by('date').values(
+        'date', 'exercise_type',
+        'vividness_rating', 'stability_rating', 'detail_rating', 'semantic_clarity',
+    )
+    data['workspace'] = {
+        'dates': [w['date'].strftime('%Y-%m-%d') for w in ws_sessions],
+        'types': [w['exercise_type'] for w in ws_sessions],
+        'vividness': [w['vividness_rating'] for w in ws_sessions],
+        'stability': [w['stability_rating'] for w in ws_sessions],
+        'detail': [w['detail_rating'] for w in ws_sessions],
+        'semantic_clarity': [w['semantic_clarity'] for w in ws_sessions],
+    }
+
+    # Capability timeline
+    caps = Capability.objects.filter(
+        confirmed_date__isnull=False,
+    ).order_by('confirmed_date').values('confirmed_date', 'code', 'name')
+    cap_dates = []
+    cap_cumulative = []
+    running = 0
+    for c in caps:
+        running += 1
+        cap_dates.append(c['confirmed_date'].strftime('%Y-%m-%d'))
+        cap_cumulative.append(running)
+    data['capabilities'] = {
+        'dates': cap_dates,
+        'cumulative': cap_cumulative,
+    }
+
     return JsonResponse(data)
+
+
+# ── Symbol views ──
+
+def symbol_list(request):
+    symbols = Symbol.objects.all()
+    return render(request, 'training/symbol_list.html', {'symbols': symbols})
+
+
+def symbol_create(request):
+    if request.method == 'POST':
+        form = SymbolForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('training:symbol_list')
+    else:
+        form = SymbolForm()
+    return render(request, 'training/symbol_form.html', {'form': form, 'editing': False})
+
+
+def symbol_edit(request, pk):
+    symbol = get_object_or_404(Symbol, pk=pk)
+    if request.method == 'POST':
+        form = SymbolForm(request.POST, instance=symbol)
+        if form.is_valid():
+            form.save()
+            return redirect('training:symbol_list')
+    else:
+        form = SymbolForm(instance=symbol)
+    return render(request, 'training/symbol_form.html', {'form': form, 'symbol': symbol, 'editing': True})
+
+
+def symbol_confirm_delete(request, pk):
+    symbol = get_object_or_404(Symbol, pk=pk)
+    return render(request, 'training/symbol_confirm_delete.html', {'symbol': symbol})
+
+
+@require_POST
+def symbol_delete(request, pk):
+    symbol = get_object_or_404(Symbol, pk=pk)
+    symbol.delete()
+    return redirect('training:symbol_list')
+
+
+# ── Workspace views ──
+
+def workspace_start(request):
+    if request.method == 'POST':
+        form = WorkspaceStartForm(request.POST)
+        if form.is_valid():
+            exercise = WorkspaceExercise.objects.create(
+                exercise_type=form.cleaned_data['exercise_type'],
+                duration=int(form.cleaned_data['duration']),
+            )
+            return redirect('training:workspace_exercise', pk=exercise.pk)
+    else:
+        form = WorkspaceStartForm()
+    return render(request, 'training/workspace_start.html', {'form': form})
+
+
+def workspace_exercise(request, pk):
+    exercise = get_object_or_404(WorkspaceExercise, pk=pk)
+    return render(request, 'training/workspace_exercise.html', {'exercise': exercise})
+
+
+def workspace_assess(request, pk):
+    exercise = get_object_or_404(WorkspaceExercise, pk=pk)
+    if request.method == 'POST':
+        form = WorkspaceAssessForm(request.POST, instance=exercise)
+        if form.is_valid():
+            form.save()
+            return redirect('training:workspace_detail', pk=exercise.pk)
+    else:
+        form = WorkspaceAssessForm(instance=exercise)
+    return render(request, 'training/workspace_assess.html', {
+        'exercise': exercise,
+        'form': form,
+    })
+
+
+def workspace_detail(request, pk):
+    exercise = get_object_or_404(
+        WorkspaceExercise.objects.prefetch_related('sources_used', 'symbols_used'),
+        pk=pk,
+    )
+    return render(request, 'training/workspace_detail.html', {'exercise': exercise})
+
+
+def workspace_log(request):
+    exercises = WorkspaceExercise.objects.all()
+    type_filter = request.GET.get('type')
+    if type_filter:
+        exercises = exercises.filter(exercise_type=type_filter)
+    return render(request, 'training/workspace_log.html', {
+        'exercises': exercises[:50],
+        'type_filter': type_filter,
+        'exercise_types': WorkspaceExercise.EXERCISE_TYPES,
+    })
+
+
+# ── Capability views ──
+
+def capability_map(request):
+    capabilities = Capability.objects.prefetch_related('brain_areas').all()
+    categories = {}
+    for cat_code, cat_label in Capability.CATEGORIES:
+        cat_caps = [c for c in capabilities if c.category == cat_code]
+        if cat_caps:
+            categories[cat_label] = cat_caps
+    confirmed = sum(1 for c in capabilities if c.status == 'confirmed')
+    return render(request, 'training/capability_map.html', {
+        'categories': categories,
+        'total': len(capabilities),
+        'confirmed': confirmed,
+    })
+
+
+@require_POST
+def api_capability_update(request, pk):
+    capability = get_object_or_404(Capability, pk=pk)
+    try:
+        data = json.loads(request.body)
+        if 'status' in data:
+            capability.status = data['status']
+        if 'confirmed_date' in data:
+            from datetime import date as date_cls
+            if data['confirmed_date']:
+                capability.confirmed_date = date_cls.fromisoformat(data['confirmed_date'])
+            else:
+                capability.confirmed_date = None
+        capability.save()
+        return JsonResponse({
+            'status': 'ok',
+            'capability_status': capability.status,
+            'confirmed_date': str(capability.confirmed_date) if capability.confirmed_date else None,
+        })
+    except (json.JSONDecodeError, ValueError, TypeError) as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

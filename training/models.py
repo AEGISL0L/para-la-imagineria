@@ -139,6 +139,130 @@ class TrainingSession(models.Model):
         return sum(ratings) / len(ratings) if ratings else None
 
 
+class Symbol(models.Model):
+    GEOMETRIC_FORMS = [
+        ('CIRCLE', 'Círculo'),
+        ('CROSS', 'Cruz'),
+        ('TRIANGLE', 'Triángulo'),
+        ('SQUARE', 'Cuadrado'),
+        ('OTHER', 'Otro'),
+    ]
+
+    name = models.CharField(max_length=100)
+    glyph = models.CharField(max_length=10)
+    geometric_form = models.CharField(max_length=10, choices=GEOMETRIC_FORMS, default='OTHER')
+    nesting_level = models.PositiveSmallIntegerField(default=0, help_text='0=simple, 1=anidado')
+    primary_meaning = models.CharField(max_length=200)
+    additional_meanings = models.TextField(blank=True, default='')
+    created = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(blank=True, default='')
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return f"{self.glyph} {self.name}"
+
+
+class WorkspaceExercise(models.Model):
+    EXERCISE_TYPES = [
+        ('TEXT', 'Proyección de texto'),
+        ('COMP', 'Composición multi-fuente'),
+        ('ANNOT', 'Anotación (bbox)'),
+        ('SYMBOL', 'Símbolo'),
+        ('FULL', 'Workspace completo'),
+    ]
+
+    TEXT_FORMATS = [
+        ('calligraphy', 'Caligrafía'),
+        ('typographic', 'Tipográfico'),
+    ]
+
+    exercise_type = models.CharField(max_length=10, choices=EXERCISE_TYPES)
+    date = models.DateTimeField(auto_now_add=True)
+    duration = models.PositiveIntegerField(default=0, help_text='Duración en segundos')
+
+    # Text fields
+    text_content = models.TextField(blank=True, default='')
+    text_format = models.CharField(max_length=20, choices=TEXT_FORMATS, blank=True, default='')
+    text_original_composition = models.BooleanField(default=False)
+    readback_success = models.BooleanField(null=True, blank=True)
+
+    # Composition fields
+    sources_used = models.ManyToManyField(BrainArea, blank=True, related_name='workspace_exercises')
+    layer_count = models.PositiveSmallIntegerField(default=0)
+    degradation_noted = models.BooleanField(default=False)
+
+    # Annotation fields
+    annotation_count = models.PositiveSmallIntegerField(default=0)
+    bounding_boxes_used = models.BooleanField(default=False)
+
+    # Symbol fields
+    symbols_used = models.ManyToManyField(Symbol, blank=True, related_name='workspace_exercises')
+
+    # Evaluation ratings (1-10)
+    vividness_rating = models.PositiveSmallIntegerField(
+        null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
+    stability_rating = models.PositiveSmallIntegerField(
+        null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
+    detail_rating = models.PositiveSmallIntegerField(
+        null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
+    semantic_clarity = models.PositiveSmallIntegerField(
+        null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
+
+    description = models.TextField(blank=True, default='')
+    notes = models.TextField(blank=True, default='')
+
+    class Meta:
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"Workspace {self.get_exercise_type_display()} — {self.date:%Y-%m-%d %H:%M}"
+
+    @property
+    def average_rating(self):
+        ratings = [r for r in [self.vividness_rating, self.stability_rating,
+                               self.detail_rating, self.semantic_clarity] if r is not None]
+        return sum(ratings) / len(ratings) if ratings else None
+
+
+class Capability(models.Model):
+    CATEGORIES = [
+        ('CAPTURE', 'Captura'),
+        ('PROJECTION', 'Proyección'),
+        ('COMPOSITION', 'Composición'),
+        ('ANNOTATION', 'Anotación'),
+        ('CONTROL', 'Control'),
+        ('RETENTION', 'Retención'),
+    ]
+
+    STATUS_CHOICES = [
+        ('confirmed', 'Confirmada'),
+        ('partial', 'Parcial'),
+        ('not_yet', 'No adquirida'),
+    ]
+
+    code = models.CharField(max_length=30, unique=True)
+    name = models.CharField(max_length=200)
+    category = models.CharField(max_length=15, choices=CATEGORIES)
+    brain_areas = models.ManyToManyField(BrainArea, blank=True, related_name='capabilities')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='not_yet')
+    confirmed_date = models.DateField(null=True, blank=True)
+    description = models.TextField(blank=True, default='')
+    notes = models.TextField(blank=True, default='')
+
+    class Meta:
+        ordering = ['category', 'code']
+        verbose_name_plural = 'capabilities'
+
+    def __str__(self):
+        return f"{self.code}: {self.name} ({self.get_status_display()})"
+
+
 class FieldCapture(models.Model):
     CAPTURE_TYPES = [
         ('FFA', 'Rostro (FFA)'),
@@ -150,7 +274,16 @@ class FieldCapture(models.Model):
         ('COLOR', 'Color (V4)'),
         ('MOTION', 'Movimiento (V5/MT)'),
         ('MULTI', 'Integración múltiple'),
+        ('TEXT', 'Texto (VWFA)'),
+        ('COMP', 'Composición multi-fuente'),
+        ('ANNOT', 'Anotación (bbox)'),
+        ('SYMBOL', 'Símbolo'),
         ('OTHER', 'Otro'),
+    ]
+
+    TEXT_FORMATS = [
+        ('calligraphy', 'Caligrafía'),
+        ('typographic', 'Tipográfico'),
     ]
 
     capture_type = models.CharField(max_length=10, choices=CAPTURE_TYPES)
@@ -167,6 +300,14 @@ class FieldCapture(models.Model):
     repetition_count = models.PositiveSmallIntegerField(default=0)
     date = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(blank=True, default='')
+
+    # IAVW extension fields
+    text_content = models.CharField(max_length=500, blank=True, default='')
+    text_format = models.CharField(max_length=20, choices=TEXT_FORMATS, blank=True, default='')
+    readback_verified = models.BooleanField(null=True, blank=True)
+    symbols_used = models.ManyToManyField(Symbol, blank=True, related_name='field_captures')
+    composition_layer_count = models.PositiveSmallIntegerField(default=0)
+    bounding_boxes_used = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-date']

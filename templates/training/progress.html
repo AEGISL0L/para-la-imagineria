@@ -70,6 +70,51 @@
         </div>
     </div>
 
+    <!-- IAVW stats -->
+    {% if total_workspace > 0 or total_capabilities > 0 %}
+    <div class="card">
+        <h2 class="font-semibold mb-4">IAVW — Workspace</h2>
+        <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+            <div class="text-center">
+                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">Ejercicios</p>
+                <p class="text-2xl font-bold">{{ total_workspace }}</p>
+            </div>
+            <div class="text-center">
+                <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">Capacidades</p>
+                <p class="text-2xl font-bold">{{ confirmed_capabilities }}/{{ total_capabilities }}</p>
+            </div>
+        </div>
+        {% if workspace_by_type %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-xs text-gray-500 dark:text-gray-400 uppercase">
+                        <th class="pb-2">Tipo</th>
+                        <th class="pb-2">N</th>
+                        <th class="pb-2">Viveza</th>
+                        <th class="pb-2">Estabilidad</th>
+                        <th class="pb-2">Detalle</th>
+                        <th class="pb-2">Sem.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for type_label, stats in workspace_by_type.items %}
+                    <tr class="border-t border-gray-100 dark:border-gray-700">
+                        <td class="py-2">{{ type_label }}</td>
+                        <td class="py-2">{{ stats.count }}</td>
+                        <td class="py-2">{% if stats.avg_v %}{{ stats.avg_v|floatformat:1 }}{% else %}—{% endif %}</td>
+                        <td class="py-2">{% if stats.avg_s %}{{ stats.avg_s|floatformat:1 }}{% else %}—{% endif %}</td>
+                        <td class="py-2">{% if stats.avg_d %}{{ stats.avg_d|floatformat:1 }}{% else %}—{% endif %}</td>
+                        <td class="py-2">{% if stats.avg_sc %}{{ stats.avg_sc|floatformat:1 }}{% else %}—{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
     <!-- Charts -->
     <div id="charts-container" class="grid lg:grid-cols-2 gap-6">
         <div class="card">
