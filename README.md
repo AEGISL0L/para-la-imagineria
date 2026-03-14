@@ -462,4 +462,4 @@ Cuestionario estandarizado de 16 items (Marks, 1973). Cada item se evalua de 1 (
 
 ## Licencia
 
-Este proyecto es de uso personal y educativo.
+Es software libre.
