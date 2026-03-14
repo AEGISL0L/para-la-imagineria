@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load training_tags %}
+
+{% block title %}Dashboard — Imaginería Visual{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold">Entrenamiento de imaginería visual</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Modo: <strong>{{ profile.get_mode_display }}</strong>
+                {% if current_week %} — Semana {{ current_week }}/8{% endif %}
+            </p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'training:session_start' %}" class="btn-primary">Nueva sesión</a>
+            <a href="{% url 'training:capture_new' %}" class="btn-secondary">+ Captura</a>
+        </div>
+    </div>
+
+    <!-- Stats cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="card">
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Sesiones</p>
+            <p class="text-2xl font-bold mt-1">{{ total_sessions }}</p>
+        </div>
+        <div class="card">
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Viveza media</p>
+            <p class="text-2xl font-bold mt-1">
+                {% if avg_ratings.avg_vividness %}{{ avg_ratings.avg_vividness|floatformat:1 }}{% else %}—{% endif %}
+            </p>
+        </div>
+        <div class="card">
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Estabilidad media</p>
+            <p class="text-2xl font-bold mt-1">
+                {% if avg_ratings.avg_stability %}{{ avg_ratings.avg_stability|floatformat:1 }}{% else %}—{% endif %}
+            </p>
+        </div>
+        <div class="card">
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Detalle medio</p>
+            <p class="text-2xl font-bold mt-1">
+                {% if avg_ratings.avg_detail %}{{ avg_ratings.avg_detail|floatformat:1 }}{% else %}—{% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Phases grid -->
+    <div>
+        <h2 class="text-lg font-semibold mb-3">Fases</h2>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {% for phase in phases %}
+            <a href="{% url 'training:phase_detail' phase.number %}" class="card hover:shadow-md transition-shadow text-center">
+                <div class="w-8 h-8 rounded-full {{ phase.number|phase_color }} mx-auto mb-2 flex items-center justify-center text-white font-bold text-sm">{{ phase.number }}</div>
+                <p class="text-xs font-medium truncate">{{ phase.title }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ phase.artworks.count }} obras</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6">
+        <!-- Recent sessions -->
+        <div>
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-lg font-semibold">Sesiones recientes</h2>
+                <a href="{% url 'training:session_log' %}" class="text-sm text-indigo-600 dark:text-indigo-400">Ver todas</a>
+            </div>
+            {% if recent_sessions %}
+            <div class="space-y-2">
+                {% for s in recent_sessions %}
+                <a href="{% url 'training:session_detail' s.pk %}" class="card block hover:shadow-md transition-shadow !p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-medium text-sm">{{ s.artwork.catalog_id }} — {{ s.artwork.title|truncatechars:30 }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ s.date|date:"d M Y H:i" }}</p>
+                        </div>
+                        {% if s.vividness_rating %}
+                        <span class="text-lg font-bold text-indigo-600 dark:text-indigo-400">{{ s.vividness_rating }}</span>
+                        {% endif %}
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 dark:text-gray-400 card">Ninguna sesión todavía. <a href="{% url 'training:session_start' %}" class="text-indigo-600 dark:text-indigo-400">Iniciar una</a>.</p>
+            {% endif %}
+        </div>
+
+        <!-- Recent captures -->
+        <div>
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-lg font-semibold">Capturas recientes</h2>
+                <a href="{% url 'training:capture_list' %}" class="text-sm text-indigo-600 dark:text-indigo-400">Ver todas</a>
+            </div>
+            {% if recent_captures %}
+            <div class="space-y-2">
+                {% for c in recent_captures %}
+                <div class="card !p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-medium text-sm">{{ c.get_capture_type_display }}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">{{ c.description|truncatechars:50 }}</p>
+                        </div>
+                        <span class="text-lg font-bold">{{ c.quality }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 dark:text-gray-400 card">Ninguna captura todavía. <a href="{% url 'training:capture_new' %}" class="text-indigo-600 dark:text-indigo-400">Registrar una</a>.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

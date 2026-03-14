@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}Evaluación — {{ session.artwork.catalog_id }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
+    <h1 class="text-2xl font-bold">Auto-evaluación</h1>
+    <p class="text-sm text-gray-500 dark:text-gray-400">
+        {{ session.artwork.catalog_id }} — {{ session.artwork.title }}
+    </p>
+
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Sliders -->
+        <div class="card space-y-6">
+            <h2 class="font-semibold">Puntuaciones</h2>
+
+            <div>
+                <label class="form-label flex justify-between">
+                    <span>Viveza (1-10)</span>
+                    <span id="vividness-val" class="font-mono text-indigo-600 dark:text-indigo-400">5</span>
+                </label>
+                <input type="range" name="vividness_rating" min="1" max="10" value="{{ form.vividness_rating.value|default:5 }}" class="w-full accent-indigo-600" id="id_vividness_rating">
+            </div>
+
+            <div>
+                <label class="form-label flex justify-between">
+                    <span>Estabilidad (1-10)</span>
+                    <span id="stability-val" class="font-mono text-indigo-600 dark:text-indigo-400">5</span>
+                </label>
+                <input type="range" name="stability_rating" min="1" max="10" value="{{ form.stability_rating.value|default:5 }}" class="w-full accent-indigo-600" id="id_stability_rating">
+            </div>
+
+            <div>
+                <label class="form-label flex justify-between">
+                    <span>Detalle (1-10)</span>
+                    <span id="detail-val" class="font-mono text-indigo-600 dark:text-indigo-400">5</span>
+                </label>
+                <input type="range" name="detail_rating" min="1" max="10" value="{{ form.detail_rating.value|default:5 }}" class="w-full accent-indigo-600" id="id_detail_rating">
+            </div>
+        </div>
+
+        {% if is_flat_affect %}
+        <!-- Emotional indicators (flat affect mode) -->
+        <div class="card space-y-4 border-amber-200 dark:border-amber-700">
+            <h2 class="font-semibold text-amber-700 dark:text-amber-300">Indicadores emocionales</h2>
+            <p class="text-xs text-gray-500 dark:text-gray-400">No se espera que notes nada. Si lo notas, registrarlo es valioso.</p>
+
+            <label class="flex items-center gap-3">
+                {% render_field form.emotional_indicator_detected class="rounded text-indigo-600" %}
+                <span class="text-sm">Se detectó indicador emocional</span>
+            </label>
+            <label class="flex items-center gap-3">
+                {% render_field form.prosody_change_noted class="rounded text-indigo-600" %}
+                <span class="text-sm">Cambio de prosodia al describir</span>
+            </label>
+            <label class="flex items-center gap-3">
+                {% render_field form.body_reaction_noted class="rounded text-indigo-600" %}
+                <span class="text-sm">Reacción corporal (calor, opresión, etc.)</span>
+            </label>
+        </div>
+        {% endif %}
+
+        <div class="card space-y-4">
+            <div>
+                <label class="form-label">Respuesta emocional</label>
+                {% render_field form.emotional_response class="form-input" %}
+            </div>
+            <div>
+                <label class="form-label">Notas</label>
+                {% render_field form.notes class="form-input" %}
+            </div>
+        </div>
+
+        <button type="submit" class="btn-primary w-full justify-center">Guardar evaluación</button>
+    </form>
+</div>
+
+<script>
+['vividness_rating', 'stability_rating', 'detail_rating'].forEach(function(name) {
+    var el = document.getElementById('id_' + name);
+    var label = name.replace('_rating', '') + '-val';
+    if (el) {
+        document.getElementById(label).textContent = el.value;
+        el.addEventListener('input', function() {
+            document.getElementById(label).textContent = this.value;
+        });
+    }
+});
+</script>
+{% endblock %}

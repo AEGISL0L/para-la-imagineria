@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load training_tags %}
+
+{% block title %}Historial de sesiones{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold">Historial de sesiones</h1>
+        <select onchange="location.href='?phase='+this.value" class="form-input !w-auto text-sm">
+            <option value="">Todas las fases</option>
+            {% for p in phases %}
+            <option value="{{ p.number }}" {% if phase_filter == p.number|stringformat:"d" %}selected{% endif %}>Fase {{ p.number }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    {% if sessions %}
+    <div class="space-y-2">
+        {% for s in sessions %}
+        <a href="{% url 'training:session_detail' s.pk %}" class="card block hover:shadow-md transition-shadow !p-4">
+            <div class="flex items-center justify-between">
+                <div class="min-w-0">
+                    <p class="font-medium text-sm">{{ s.artwork.catalog_id }} — {{ s.artwork.title|truncatechars:40 }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ s.date|date:"d M Y H:i" }} —
+                        Vis: {{ s.viewing_duration|format_duration }} / Ret: {{ s.retention_duration|format_duration }}
+                    </p>
+                </div>
+                <div class="flex gap-2 text-sm shrink-0">
+                    {% if s.vividness_rating %}
+                    <span class="font-bold text-indigo-600 dark:text-indigo-400">{{ s.vividness_rating }}</span>
+                    {% else %}
+                    <span class="text-xs text-gray-400">sin eval</span>
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-gray-500 dark:text-gray-400 card text-center">No hay sesiones registradas.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load training_tags %}
+
+{% block title %}Iniciar sesión{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <h1 class="text-2xl font-bold">Elegir obra para sesión</h1>
+
+    <!-- Phase quick filter -->
+    <div class="flex flex-wrap gap-2">
+        {% for p in phases %}
+        <button onclick="filterPhase({{ p.number }})" class="badge {{ p.number|phase_color }} text-white cursor-pointer hover:opacity-80 px-3 py-1" data-phase="{{ p.number }}">
+            Fase {{ p.number }}
+        </button>
+        {% endfor %}
+        <button onclick="filterPhase(0)" class="badge bg-gray-300 dark:bg-gray-600 cursor-pointer hover:opacity-80 px-3 py-1">Todas</button>
+    </div>
+
+    <div id="artwork-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {% for artwork in artworks %}
+        <div data-phase="{{ artwork.phase.number }}">
+            {% include "components/_artwork_card.html" with artwork=artwork %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function filterPhase(num) {
+    document.querySelectorAll('#artwork-grid > div').forEach(el => {
+        el.style.display = (num === 0 || el.dataset.phase == num) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

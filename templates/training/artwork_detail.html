@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% load training_tags %}
+
+{% block title %}{{ artwork.catalog_id }} — {{ artwork.title }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+        <a href="{% url 'training:catalog' %}" class="hover:text-indigo-600">Catálogo</a>
+        <span>/</span>
+        <a href="{% url 'training:phase_detail' artwork.phase.number %}" class="hover:text-indigo-600">Fase {{ artwork.phase.number }}</a>
+        <span>/</span>
+        <span>{{ artwork.catalog_id }}</span>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-6">
+        <!-- Image -->
+        <div class="card !p-0 overflow-hidden">
+            <img src="{{ artwork.wikimedia_url }}"
+                 alt="{{ artwork.title }}"
+                 referrerpolicy="no-referrer"
+                 class="w-full object-contain max-h-[500px] bg-gray-100 dark:bg-gray-700"
+                 onerror="this.parentElement.innerHTML='<div class=\'flex items-center justify-center h-64 text-gray-400\'>Imagen no disponible</div>';">
+        </div>
+
+        <!-- Info -->
+        <div class="space-y-4">
+            <div class="card">
+                <h1 class="text-xl font-bold">{{ artwork.title }}</h1>
+                <p class="text-gray-600 dark:text-gray-400">{{ artwork.artist }}, {{ artwork.year }}</p>
+                <div class="flex items-center gap-2 mt-3">
+                    <span class="badge {{ artwork.emotional_category|emotional_category_badge }}">
+                        Cat {{ artwork.emotional_category }}
+                    </span>
+                    <span class="badge bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                        Fase {{ artwork.phase.number }}
+                    </span>
+                    {% if artwork.emotional_intensity_level %}
+                    <span class="badge bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                        Intensidad {{ artwork.emotional_intensity_level }}/3
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if artwork.training_purpose %}
+            <div class="card">
+                <h2 class="font-semibold text-sm mb-2">Propósito de entrenamiento</h2>
+                <p class="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">{{ artwork.training_purpose }}</p>
+            </div>
+            {% endif %}
+
+            <div class="card">
+                <h2 class="font-semibold text-sm mb-2">Instrucciones{% if is_flat_affect %} (flat affect){% endif %}</h2>
+                <p class="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">
+                    {% if is_flat_affect and artwork.instructions_flat_affect %}
+                        {{ artwork.instructions_flat_affect }}
+                    {% else %}
+                        {{ artwork.instructions_standard }}
+                    {% endif %}
+                </p>
+            </div>
+
+            {% if artwork.brain_areas.exists %}
+            <div class="card">
+                <h2 class="font-semibold text-sm mb-2">Áreas cerebrales</h2>
+                <div class="flex flex-wrap gap-1">
+                    {% for area in artwork.brain_areas.all %}
+                    <span class="badge bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200" title="{{ area.description }}">
+                        {{ area.code }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if is_flat_affect and artwork.reexposure_prompt %}
+            <div class="card border-amber-200 dark:border-amber-700">
+                <h2 class="font-semibold text-sm mb-2 text-amber-700 dark:text-amber-300">Prompt re-exposición</h2>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ artwork.reexposure_prompt }}</p>
+            </div>
+            {% endif %}
+
+            <a href="{% url 'training:session_start_artwork' artwork.catalog_id %}" class="btn-primary w-full justify-center">
+                Iniciar sesión con esta obra
+            </a>
+        </div>
+    </div>
+
+    {% if sessions %}
+    <div class="card">
+        <h2 class="font-semibold mb-3">Historial de sesiones con esta obra</h2>
+        <div class="space-y-2">
+            {% for s in sessions %}
+            <a href="{% url 'training:session_detail' s.pk %}" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+                <div>
+                    <p class="text-sm">{{ s.date|date:"d M Y H:i" }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                        Vis: {{ s.viewing_duration|format_duration }} — Ret: {{ s.retention_duration|format_duration }}
+                    </p>
+                </div>
+                <div class="flex gap-3 text-sm">
+                    {% if s.vividness_rating %}<span title="Viveza">V:{{ s.vividness_rating }}</span>{% endif %}
+                    {% if s.stability_rating %}<span title="Estabilidad">S:{{ s.stability_rating }}</span>{% endif %}
+                    {% if s.detail_rating %}<span title="Detalle">D:{{ s.detail_rating }}</span>{% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

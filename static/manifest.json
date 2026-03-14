@@ -1,0 +1,10 @@
+{
+    "name": "Imaginería Visual",
+    "short_name": "Imaginería",
+    "description": "Entrenamiento de imaginería visual — 35 obras, 6 fases, 8 semanas",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#f9fafb",
+    "theme_color": "#4f46e5",
+    "icons": []
+}

@@ -1,0 +1,48 @@
+{% load training_tags %}
+<nav class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-14">
+            <div class="flex items-center gap-6">
+                <a href="{% url 'training:dashboard' %}" class="font-bold text-lg text-indigo-600 dark:text-indigo-400">IV</a>
+                <div class="hidden md:flex items-center gap-4 text-sm">
+                    <a href="{% url 'training:catalog' %}" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">Catálogo</a>
+                    <a href="{% url 'training:session_start' %}" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">Sesión</a>
+                    <a href="{% url 'training:image_streaming' %}" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">Streaming</a>
+                    <a href="{% url 'training:capture_list' %}" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">Capturas</a>
+                    <a href="{% url 'training:program' %}" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">Programa</a>
+                    <a href="{% url 'training:progress' %}" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">Progreso</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                {% if profile.mode == 'flat_affect' %}
+                <span class="badge bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">FA</span>
+                {% endif %}
+                <button id="dark-toggle" class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700" title="Modo oscuro">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                </button>
+                <a href="{% url 'training:settings' %}" class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700" title="Ajustes">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </a>
+                <!-- Mobile menu -->
+                <button id="mobile-menu-btn" class="md:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Mobile dropdown -->
+    <div id="mobile-menu" class="hidden md:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 pb-3 space-y-1">
+        <a href="{% url 'training:catalog' %}" class="block py-2 text-sm text-gray-600 dark:text-gray-300">Catálogo</a>
+        <a href="{% url 'training:session_start' %}" class="block py-2 text-sm text-gray-600 dark:text-gray-300">Nueva sesión</a>
+        <a href="{% url 'training:image_streaming' %}" class="block py-2 text-sm text-gray-600 dark:text-gray-300">Image Streaming</a>
+        <a href="{% url 'training:capture_list' %}" class="block py-2 text-sm text-gray-600 dark:text-gray-300">Capturas</a>
+        <a href="{% url 'training:program' %}" class="block py-2 text-sm text-gray-600 dark:text-gray-300">Programa</a>
+        <a href="{% url 'training:progress' %}" class="block py-2 text-sm text-gray-600 dark:text-gray-300">Progreso</a>
+        <a href="{% url 'training:session_log' %}" class="block py-2 text-sm text-gray-600 dark:text-gray-300">Historial</a>
+    </div>
+    <script>
+        document.getElementById('mobile-menu-btn')?.addEventListener('click', function() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+    </script>
+</nav>

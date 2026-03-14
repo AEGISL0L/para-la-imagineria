@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load training_tags %}
+
+{% block title %}Capturas de campo{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold">Capturas de campo</h1>
+        <a href="{% url 'training:capture_new' %}" class="btn-primary">+ Nueva captura</a>
+    </div>
+
+    {% if captures %}
+    <div class="space-y-2">
+        {% for c in captures %}
+        <div class="card !p-4">
+            <div class="flex items-start justify-between">
+                <div class="min-w-0">
+                    <div class="flex items-center gap-2">
+                        <span class="badge bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">{{ c.get_capture_type_display }}</span>
+                        {% if c.eyes_open %}<span class="text-xs text-gray-500">ojos abiertos</span>{% endif %}
+                        {% if c.in_motion %}<span class="text-xs text-gray-500">en movimiento</span>{% endif %}
+                        {% if c.deliberate %}<span class="text-xs text-green-600">deliberada</span>{% else %}<span class="text-xs text-amber-600">espontánea</span>{% endif %}
+                    </div>
+                    <p class="text-sm mt-1">{{ c.description }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ c.date|date:"d M Y H:i" }}</p>
+                    {% if c.notes %}<p class="text-xs text-gray-500 mt-1 italic">{{ c.notes }}</p>{% endif %}
+                </div>
+                <div class="text-right shrink-0 ml-4">
+                    <p class="text-2xl font-bold">{{ c.quality }}</p>
+                    <p class="text-xs text-gray-500">calidad</p>
+                    {% if c.repetition_count %}
+                    <p class="text-xs text-gray-500 mt-1">{{ c.repetition_count }}x rep</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex gap-4 mt-2 text-xs text-gray-500">
+                <span>Inmediata: {% if c.immediate_retention %}si{% else %}no{% endif %}</span>
+                {% if c.session_end_retention is not None %}<span>Fin sesión: {% if c.session_end_retention %}si{% else %}no{% endif %}</span>{% endif %}
+                {% if c.next_day_retention is not None %}<span>Día sig.: {% if c.next_day_retention %}si{% else %}no{% endif %}</span>{% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-gray-500 dark:text-gray-400 card text-center">No hay capturas registradas.</p>
+    {% endif %}
+</div>
+{% endblock %}

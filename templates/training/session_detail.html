@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load training_tags %}
+
+{% block title %}Sesión {{ session.pk }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
+    <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+        <a href="{% url 'training:session_log' %}" class="hover:text-indigo-600">Historial</a>
+        <span>/</span>
+        <span>Sesión {{ session.pk }}</span>
+    </div>
+
+    <div class="card">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-xl font-bold">{{ session.artwork.title }}</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ session.artwork.artist }} — {{ session.artwork.catalog_id }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ session.date|date:"d M Y H:i" }}</p>
+            </div>
+            <a href="{% url 'training:artwork_detail' session.artwork.catalog_id %}" class="btn-secondary text-xs">Ver obra</a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+        <div class="card text-center">
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">Visualización</p>
+            <p class="text-2xl font-mono font-bold mt-1">{{ session.viewing_duration|format_duration }}</p>
+        </div>
+        <div class="card text-center">
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">Retención</p>
+            <p class="text-2xl font-mono font-bold mt-1">{{ session.retention_duration|format_duration }}</p>
+        </div>
+    </div>
+
+    {% if session.vividness_rating %}
+    <div class="card">
+        <h2 class="font-semibold mb-4">Puntuaciones</h2>
+        <div class="grid grid-cols-3 gap-4 text-center">
+            <div>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Viveza</p>
+                <p class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{{ session.vividness_rating }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Estabilidad</p>
+                <p class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{{ session.stability_rating }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Detalle</p>
+                <p class="text-3xl font-bold text-amber-600 dark:text-amber-400">{{ session.detail_rating }}</p>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <a href="{% url 'training:session_assess' session.pk %}" class="btn-primary w-full justify-center">Evaluar sesión</a>
+    {% endif %}
+
+    {% if session.emotional_indicator_detected or session.prosody_change_noted or session.body_reaction_noted %}
+    <div class="card border-amber-200 dark:border-amber-700">
+        <h2 class="font-semibold text-amber-700 dark:text-amber-300 mb-2">Indicadores emocionales</h2>
+        <ul class="text-sm space-y-1">
+            {% if session.emotional_indicator_detected %}<li>Indicador emocional detectado</li>{% endif %}
+            {% if session.prosody_change_noted %}<li>Cambio de prosodia</li>{% endif %}
+            {% if session.body_reaction_noted %}<li>Reacción corporal</li>{% endif %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if session.emotional_response %}
+    <div class="card">
+        <h2 class="font-semibold text-sm mb-2">Respuesta emocional</h2>
+        <p class="text-sm text-gray-600 dark:text-gray-400">{{ session.emotional_response }}</p>
+    </div>
+    {% endif %}
+
+    {% if session.notes %}
+    <div class="card">
+        <h2 class="font-semibold text-sm mb-2">Notas</h2>
+        <p class="text-sm text-gray-600 dark:text-gray-400">{{ session.notes }}</p>
+    </div>
+    {% endif %}
+
+    <div class="flex gap-2">
+        <a href="{% url 'training:session_start_artwork' session.artwork.catalog_id %}" class="btn-secondary">Repetir con misma obra</a>
+        <a href="{% url 'training:session_start' %}" class="btn-secondary">Nueva sesión</a>
+    </div>
+</div>
+{% endblock %}

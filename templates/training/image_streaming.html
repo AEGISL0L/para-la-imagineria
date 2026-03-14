@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Image Streaming{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
+    <h1 class="text-2xl font-bold">Image Streaming (MET-1)</h1>
+
+    {% if method %}
+    <div class="card">
+        <h2 class="font-semibold text-sm mb-2">Protocolo</h2>
+        <p class="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">
+            {% if is_flat_affect and method.adaptation_flat_affect %}
+                {{ method.adaptation_flat_affect }}
+            {% else %}
+                {{ method.protocol_steps }}
+            {% endif %}
+        </p>
+    </div>
+    {% endif %}
+
+    <div class="card text-center space-y-6">
+        <div>
+            <label class="form-label">Duración</label>
+            <select id="is-duration" class="form-input !w-auto mx-auto">
+                <option value="600">10 minutos</option>
+                <option value="900" selected>15 minutos</option>
+                <option value="1200">20 minutos</option>
+            </select>
+        </div>
+
+        <div id="is-timer" class="text-6xl font-mono font-bold text-indigo-600 dark:text-indigo-400">15:00</div>
+
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+            <div id="is-progress" class="bg-indigo-600 h-2 rounded-full transition-all" style="width: 0%"></div>
+        </div>
+
+        <p id="is-status" class="text-sm text-gray-500 dark:text-gray-400">Listo</p>
+
+        <div id="is-prompt" class="min-h-[3rem] text-lg text-gray-700 dark:text-gray-300 italic"></div>
+
+        <div class="flex justify-center gap-3">
+            <button id="is-start" class="btn-primary">Iniciar</button>
+            <button id="is-pause" class="btn-secondary hidden">Pausar</button>
+            <button id="is-reset" class="btn-danger hidden">Reiniciar</button>
+        </div>
+    </div>
+
+    {% if is_flat_affect %}
+    <div class="card border-amber-200 dark:border-amber-700">
+        <h2 class="font-semibold text-sm text-amber-700 dark:text-amber-300 mb-2">Modo flat affect</h2>
+        <div class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+            <p><strong>Fase A (sem 3-4):</strong> Describe solo lo que VES: forma, color, textura, posición, movimiento, luz.</p>
+            <p><strong>Fase B (sem 5-6):</strong> + material, temperatura, peso, rugosidad.</p>
+            <p><strong>Fase C (sem 7-8):</strong> + "¿Notas alguna reacción al ver esto?"</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/image-streaming-timer.js' %}"></script>
+{% endblock %}

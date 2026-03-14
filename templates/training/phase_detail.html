@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load training_tags %}
+
+{% block title %}Fase {{ phase.number }} — {{ phase.title }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+        <a href="{% url 'training:catalog' %}" class="hover:text-indigo-600">Catálogo</a>
+        <span>/</span>
+        <span>Fase {{ phase.number }}</span>
+    </div>
+
+    <div class="card">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full {{ phase.number|phase_color }} flex items-center justify-center text-white font-bold">{{ phase.number }}</div>
+            <div>
+                <h1 class="text-xl font-bold">{{ phase.title }}</h1>
+                {% if is_flat_affect %}<span class="badge bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200 ml-2">Orden flat affect</span>{% endif %}
+            </div>
+        </div>
+        <p class="mt-3 text-gray-600 dark:text-gray-400 whitespace-pre-line">{{ phase.objective }}</p>
+        {% if phase.protocol_instructions %}
+        <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <h3 class="text-sm font-semibold mb-2">Protocolo</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">{{ phase.protocol_instructions }}</p>
+        </div>
+        {% endif %}
+        {% if phase.primary_circuits.exists %}
+        <div class="mt-3 flex flex-wrap gap-1">
+            {% for area in phase.primary_circuits.all %}
+            <span class="badge bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">{{ area.code }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <h2 class="text-lg font-semibold">Obras ({{ artworks.count }})</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        {% for artwork in artworks %}
+            {% include "components/_artwork_card.html" with artwork=artwork %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

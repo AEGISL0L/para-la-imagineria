@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Cuestionario VVIQ{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
+    <div>
+        <h1 class="text-2xl font-bold">VVIQ — Vividness of Visual Imagery Questionnaire</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            16 ítems. Puntúa cada uno de 1 (sin imagen) a 5 (tan vívida como ver realmente).
+        </p>
+    </div>
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+
+        <div class="card">
+            <label class="form-label">{{ form.context.label }}</label>
+            {{ form.context }}
+        </div>
+
+        {% for field in form %}
+            {% if field.name != 'context' %}
+            <div class="card">
+                <p class="text-sm font-medium mb-3">{{ forloop.counter }}. {{ field.label }}</p>
+                <div class="space-y-2">
+                    {% for choice in field.field.choices %}
+                    <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                        <input type="radio" name="{{ field.html_name }}" value="{{ choice.0 }}" class="text-indigo-600" {% if field.value == choice.0|stringformat:"d" %}checked{% endif %}>
+                        <span class="text-sm">{{ choice.1 }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% if field.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% endfor %}
+
+        <button type="submit" class="btn-primary w-full justify-center">Enviar VVIQ</button>
+    </form>
+</div>
+{% endblock %}

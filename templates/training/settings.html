@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}Ajustes{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto space-y-6">
+    <h1 class="text-2xl font-bold">Ajustes</h1>
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+
+        <div class="card space-y-4">
+            <div>
+                <label class="form-label">{{ form.mode.label }}</label>
+                {% render_field form.mode class="form-input" %}
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    El modo flat affect reordena obras (Cat C al final), adapta instrucciones y agrega indicadores emocionales.
+                </p>
+            </div>
+
+            <div>
+                <label class="form-label">{{ form.program_start_date.label }}</label>
+                {% render_field form.program_start_date class="form-input" %}
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Fecha de inicio del programa de 8 semanas. Se usa para calcular la semana actual.
+                </p>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-primary w-full justify-center">Guardar</button>
+    </form>
+
+    {% if profile.vviq_baseline %}
+    <div class="card">
+        <p class="text-sm"><strong>VVIQ baseline:</strong> {{ profile.vviq_baseline }}/80</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

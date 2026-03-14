@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}Nueva captura{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto space-y-6">
+    <h1 class="text-2xl font-bold">Registrar captura de campo</h1>
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+
+        <div class="card space-y-4">
+            <div>
+                <label class="form-label">{{ form.capture_type.label }}</label>
+                {% render_field form.capture_type class="form-input" %}
+            </div>
+
+            <div>
+                <label class="form-label flex justify-between">
+                    <span>{{ form.quality.label }}</span>
+                    <span id="quality-val" class="font-mono text-indigo-600 dark:text-indigo-400">5</span>
+                </label>
+                <input type="range" name="quality" min="1" max="10" value="5" class="w-full accent-indigo-600" id="id_quality">
+                <script>document.getElementById('id_quality').addEventListener('input',function(){document.getElementById('quality-val').textContent=this.value});</script>
+            </div>
+
+            <div>
+                <label class="form-label">{{ form.description.label }}</label>
+                {% render_field form.description class="form-input" placeholder="Qué capturaste y cómo" %}
+            </div>
+        </div>
+
+        <div class="card space-y-3">
+            <h2 class="font-semibold text-sm">Condiciones</h2>
+            <label class="flex items-center gap-3">
+                {% render_field form.eyes_open class="rounded text-indigo-600" %}
+                <span class="text-sm">{{ form.eyes_open.label }}</span>
+            </label>
+            <label class="flex items-center gap-3">
+                {% render_field form.in_motion class="rounded text-indigo-600" %}
+                <span class="text-sm">{{ form.in_motion.label }}</span>
+            </label>
+            <label class="flex items-center gap-3">
+                {% render_field form.deliberate class="rounded text-indigo-600" %}
+                <span class="text-sm">{{ form.deliberate.label }}</span>
+            </label>
+            <label class="flex items-center gap-3">
+                {% render_field form.immediate_retention class="rounded text-indigo-600" %}
+                <span class="text-sm">{{ form.immediate_retention.label }}</span>
+            </label>
+        </div>
+
+        <div class="card space-y-4">
+            <div>
+                <label class="form-label">{{ form.repetition_count.label }}</label>
+                {% render_field form.repetition_count class="form-input" %}
+            </div>
+            <div>
+                <label class="form-label">{{ form.notes.label }}</label>
+                {% render_field form.notes class="form-input" %}
+            </div>
+        </div>
+
+        <button type="submit" class="btn-primary w-full justify-center">Guardar captura</button>
+    </form>
+</div>
+{% endblock %}

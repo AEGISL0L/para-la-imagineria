@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sesión en curso{% endblock %}
+
+{% block extra_head %}
+<style>
+    body.session-active nav, body.session-active main > *:not(#session-container) { display: none !important; }
+    body.session-active main { padding: 0 !important; max-width: 100% !important; }
+    body.session-active { background: black !important; }
+    #session-container { position: fixed; inset: 0; z-index: 100; }
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div id="session-data"
+     data-session-id="{{ session.pk }}"
+     data-viewing-duration="{{ session.viewing_duration }}"
+     class="hidden"></div>
+
+<div id="session-container" class="flex items-center justify-center bg-black text-white">
+    <!-- Start button -->
+    <div id="start-btn" class="text-center cursor-pointer select-none p-8">
+        <p class="text-4xl mb-4">{{ session.artwork.catalog_id }}</p>
+        <p class="text-xl text-gray-400 mb-8">{{ session.artwork.title }}</p>
+        <p class="text-lg animate-pulse">Pulsa para comenzar</p>
+        <p class="text-sm text-gray-500 mt-2">(o barra espaciadora)</p>
+    </div>
+
+    <!-- Image phase -->
+    <div id="image-phase" class="hidden absolute inset-0 flex flex-col items-center justify-center">
+        <img src="{{ session.artwork.wikimedia_url }}"
+             alt="{{ session.artwork.title }}"
+             referrerpolicy="no-referrer"
+             class="max-h-[85vh] max-w-[95vw] object-contain">
+        <div id="countdown" class="absolute bottom-6 text-2xl font-mono text-white/60">
+            {% widthratio session.viewing_duration 60 1 %}:00
+        </div>
+    </div>
+
+    <!-- Retention phase -->
+    <div id="retention-phase" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black">
+        <p class="text-gray-500 text-sm mb-4">Retención — cierra los ojos</p>
+        <div id="countup" class="text-5xl font-mono text-white/40">0:00</div>
+        <button id="end-retention-btn" class="mt-12 px-8 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors">
+            Terminar retención
+        </button>
+        <p class="text-xs text-gray-600 mt-4">(o barra espaciadora)</p>
+    </div>
+
+    <!-- Complete phase -->
+    <div id="complete-phase" class="hidden absolute inset-0 flex items-center justify-center bg-black">
+        <p class="text-xl text-white/60 animate-pulse">Guardando...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/session-timer.js' %}"></script>
+<script>document.body.classList.add('session-active');</script>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Sesión — {{ artwork.catalog_id }}{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto space-y-6">
+    <h1 class="text-2xl font-bold text-center">Preparar sesión</h1>
+
+    <div class="card text-center">
+        <div class="aspect-[4/3] bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden mb-4">
+            <img src="{{ artwork.wikimedia_url }}" alt="{{ artwork.title }}" referrerpolicy="no-referrer" class="w-full h-full object-contain">
+        </div>
+        <h2 class="font-semibold">{{ artwork.title }}</h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400">{{ artwork.artist }}, {{ artwork.year }}</p>
+    </div>
+
+    <form method="post" class="card space-y-4">
+        {% csrf_token %}
+        <div>
+            <label class="form-label">Duración de visualización</label>
+            <select name="viewing_duration" class="form-input">
+                <option value="30">30 segundos</option>
+                <option value="60" selected>60 segundos</option>
+                <option value="90">90 segundos</option>
+            </select>
+        </div>
+
+        <div class="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-sm text-blue-700 dark:text-blue-300">
+            <p class="font-medium mb-1">Flujo de la sesión:</p>
+            <ol class="list-decimal list-inside space-y-1 text-xs">
+                <li>Visualización: imagen a pantalla completa + countdown</li>
+                <li>Campana al terminar</li>
+                <li>Retención: pantalla negra + cronómetro ascendente</li>
+                <li>Pulsa "Terminar" cuando quieras</li>
+                <li>Auto-evaluación</li>
+            </ol>
+        </div>
+
+        <button type="submit" class="btn-primary w-full justify-center">Iniciar sesión</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load training_tags %}
+
+{% block title %}Catálogo — Imaginería Visual{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 class="text-2xl font-bold">Catálogo de obras</h1>
+        <div class="flex flex-wrap gap-2">
+            <!-- Phase filter -->
+            <select onchange="location.href='?phase='+this.value+'{% if category_filter %}&category={{ category_filter }}{% endif %}'" class="form-input !w-auto text-sm">
+                <option value="">Todas las fases</option>
+                {% for p in phases %}
+                <option value="{{ p.number }}" {% if phase_filter == p.number|stringformat:"d" %}selected{% endif %}>Fase {{ p.number }}</option>
+                {% endfor %}
+            </select>
+            <!-- Category filter -->
+            <select onchange="location.href='?category='+this.value+'{% if phase_filter %}&phase={{ phase_filter }}{% endif %}'" class="form-input !w-auto text-sm">
+                <option value="">Todas las categorías</option>
+                <option value="A" {% if category_filter == 'A' %}selected{% endif %}>Cat A</option>
+                <option value="B" {% if category_filter == 'B' %}selected{% endif %}>Cat B</option>
+                <option value="C" {% if category_filter == 'C' %}selected{% endif %}>Cat C</option>
+            </select>
+            {% if phase_filter or category_filter %}
+            <a href="{% url 'training:catalog' %}" class="btn-secondary text-xs">Limpiar</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {% for artwork in artworks %}
+            {% include "components/_artwork_card.html" with artwork=artwork %}
+        {% empty %}
+            <p class="col-span-full text-center text-gray-500 dark:text-gray-400 py-12">No hay obras que coincidan con los filtros.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

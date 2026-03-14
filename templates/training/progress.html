@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load static training_tags %}
+
+{% block title %}Progreso{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold">Progreso</h1>
+        <a href="{% url 'training:vviq' %}" class="btn-secondary">Cuestionario VVIQ</a>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="card text-center">
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">Sesiones</p>
+            <p class="text-2xl font-bold mt-1">{{ total_sessions }}</p>
+        </div>
+        <div class="card text-center">
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">Capturas</p>
+            <p class="text-2xl font-bold mt-1">{{ total_captures }}</p>
+        </div>
+        {% if vviq_responses %}
+        <div class="card text-center">
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">VVIQ último</p>
+            <p class="text-2xl font-bold mt-1">{{ vviq_responses.0.total_score }}/80</p>
+        </div>
+        <div class="card text-center">
+            <p class="text-xs text-gray-500 dark:text-gray-400 uppercase">VVIQ baseline</p>
+            <p class="text-2xl font-bold mt-1">{% if profile.vviq_baseline %}{{ profile.vviq_baseline }}/80{% else %}—{% endif %}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Phase stats -->
+    <div class="card">
+        <h2 class="font-semibold mb-4">Por fase</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-xs text-gray-500 dark:text-gray-400 uppercase">
+                        <th class="pb-2">Fase</th>
+                        <th class="pb-2">Sesiones</th>
+                        <th class="pb-2">Viveza</th>
+                        <th class="pb-2">Estabilidad</th>
+                        <th class="pb-2">Detalle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ps in phase_stats %}
+                    <tr class="border-t border-gray-100 dark:border-gray-700">
+                        <td class="py-2">
+                            <span class="inline-flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full {{ ps.phase.number|phase_color }}"></span>
+                                Fase {{ ps.phase.number }}
+                            </span>
+                        </td>
+                        <td class="py-2">{{ ps.count }}</td>
+                        <td class="py-2">{% if ps.avg_vividness %}{{ ps.avg_vividness|floatformat:1 }}{% else %}—{% endif %}</td>
+                        <td class="py-2">{% if ps.avg_stability %}{{ ps.avg_stability|floatformat:1 }}{% else %}—{% endif %}</td>
+                        <td class="py-2">{% if ps.avg_detail %}{{ ps.avg_detail|floatformat:1 }}{% else %}—{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div id="charts-container" class="grid lg:grid-cols-2 gap-6">
+        <div class="card">
+            <canvas id="ratings-chart"></canvas>
+        </div>
+        <div class="card">
+            <canvas id="phase-chart"></canvas>
+        </div>
+        <div class="card lg:col-span-2">
+            <canvas id="vviq-chart"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/charts.js' %}"></script>
+{% endblock %}
